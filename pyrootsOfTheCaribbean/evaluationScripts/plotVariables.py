@@ -12,11 +12,12 @@ import plot_configs.variableConfig as binning
 import plot_configs.setupPlots as setup
 
 class Sample:
-    def __init__(self, sampleName, sampleFile, signalSample = False, plotColor = None, apply_cut = True, maxEntries = None):
+    def __init__(self, sampleName, sampleFile, signalSample = False, plotColor = None, apply_cut = True, maxEntries = None, unweighted = False):
         self.sampleName = sampleName
         self.sampleFile = sampleFile
         self.isSignal   = signalSample
         self.applyCut   = apply_cut
+        self.unweighted = unweighted
         self.stop       = None if not maxEntries else int(maxEntries)
 
         self.plotColor  = plotColor
@@ -35,11 +36,16 @@ class Sample:
             self.data = store.select("data", stop = self.stop)
         print("\tnevents: {}".format(self.data.shape[0]))
         # hack
-        self.data["Weight_XS"] = self.data["Weight_XS"].astype(float)
+        if not self.unweighted:
+            self.data["Weight_XS"] = self.data["Weight_XS"].astype(float)
 
     def cutData(self, cut, variables, lumi_scale):
         if not self.applyCut or cut in ["inclusive", "SL"]:
             self.cut_data[cut] = self.data
+            if self.unweighted:
+                self.cut_data[cut] = self.cut_data[cut].assign(weight = lambda x: 1.*lumi_scale)
+                return
+
             self.cut_data[cut] = self.cut_data[cut].assign(weight = lambda x: x.Weight_XS*x.Weight_GEN_nom*lumi_scale)
             return
 
@@ -60,7 +66,7 @@ class variablePlotter:
         self.variable_set   = variable_set
         self.add_vars       = list(add_vars)        
         self.max_entries    = max_entries
-
+    
         self.samples        = {}
         self.ordered_stack  = []
         self.categories     = []
@@ -71,7 +77,8 @@ class variablePlotter:
             "ratioTitle":   None,
             "logscale":     False,
             "scaleSignal":  -1,
-            "KSscore":      False}
+            "KSscore":      False,      
+            "unweighted":   False}
 
         for key in plotOptions:
             defaultOptions[key] = plotOptions[key]
@@ -81,6 +88,7 @@ class variablePlotter:
     def addSample(self, **kwargs):
         print("adding sample: "+str(kwargs["sampleName"]))
         kwargs["maxEntries"] = self.max_entries
+        kwargs["unweighted"] = self.options["unweighted"]
         self.samples[kwargs["sampleName"]] = Sample(**kwargs)
         if not self.samples[kwargs["sampleName"]].isSignal:
             self.ordered_stack.append(kwargs["sampleName"])
