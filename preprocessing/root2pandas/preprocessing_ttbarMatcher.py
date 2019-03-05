@@ -22,7 +22,7 @@ categories.addCategory("ttbar", selection = None)
 
 # initialize dataset class
 dataset = root2pandas.Dataset(
-    outputdir   = "/nfs/dust/cms/user/vdlinden/DNNInputFiles/ttbarMatcher/",
+    outputdir   = "/nfs/dust/cms/user/vdlinden/DNNInputFiles/ttbarMatcher_v2/",
     naming      = "input",
     addCNNmap   = False,
     addMEM      = False,
@@ -34,7 +34,7 @@ dataset.addBaseSelection(base_selection)
 # add samples to dataset
 dataset.addSample(
     sampleName  = "ttbar",
-    ntuples     = "/nfs/dust/cms/user/vdlinden/ttH_2018/ntuples/ntuples_ttbarMatching/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8_new_pmx/*nominal*.root",
+    ntuples     = "/nfs/dust/cms/user/vdlinden/ttH_2018/ntuples/ntuples_ttbarMatching_v2/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8_new_pmx/*nominal*.root",
     categories  = categories)
     
 # initialize variable list 
