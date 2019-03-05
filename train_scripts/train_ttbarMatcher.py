@@ -19,9 +19,9 @@ naming = "_input.h5"
 
 # define input objects
 input_features = df.InputFeatures()
-input_features.addObject("ttMatchInputJet",     length = "N_ttMatchInputJets",    max = 10)
-input_features.addObject("ttMatchInputLepton",  length = "N_ttMatchInputLeptons", max = 1)
 input_features.addObject("ttMatchInputMET")
+input_features.addObject("ttMatchInputLepton",  length = "N_ttMatchInputLeptons", max = 1)
+input_features.addObject("ttMatchInputJet",     length = "N_ttMatchInputJets",    max = 10)
 # define input variables
 input_features.addVariables(["E", "Px", "Py", "Pz"])# "M", "CSV", "Constituents"])
 input_features.generateVariableSet()
@@ -49,7 +49,7 @@ matcher = ttbarMatcher.ttbarMatcher(
     input_samples   = input_samples,
     input_features  = input_features,
     target_features = target_features,
-    shuffle_inputs  = True,
+    shuffle_inputs  = False,
     loss_function   = "mschrode_kit_cool_loss",
     feature_scaling = 500.,
     n_epochs        = 10,
