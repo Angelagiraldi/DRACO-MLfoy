@@ -14,15 +14,13 @@ from pyrootsOfTheCaribbean.evaluationScripts import plottingScripts
 
 # imports with keras
 import utils.generateJTcut as JTcut
-import architecture as arch
 import data_frame
 
 import keras
+import keras.optimizers as optimizers
 import keras.models as models
 import keras.layers as layer
 from keras import backend as K
-import matplotlib.pyplot as plt
-plt.rc('text', usetex=True)
 import pandas as pd
 
 # Limit gpu usage
@@ -35,32 +33,56 @@ K.tensorflow_backend.set_session(tf.Session(config=config))
 
 
 
-class EarlyStoppingByLossDiff(keras.callbacks.Callback):
-    def __init__(self, monitor = "loss", value = 0.01, min_epochs = 20, patience = 10, verbose = 0):
+class EarlyStopping(keras.callbacks.Callback):
+    ''' custom implementation of early stopping
+        with options for
+            - stopping when val/train loss difference exceeds a percentage threshold
+            - stopping when val loss hasnt increased for a set number of epochs '''
+
+    def __init__(self, monitor = "loss", value = None, min_epochs = 20, stopping_epochs = None, patience = 10, verbose = 0):
         super(keras.callbacks.Callback, self).__init__()
         self.val_monitor = "val_"+monitor
         self.train_monitor = monitor
         self.patience = patience
         self.n_failed = 0
 
+        self.stopping_epochs = stopping_epochs
+        self.best_epoch = 0
+        self.best_validation = 999.
         self.min_epochs = min_epochs
         self.value = value
         self.verbose = verbose
 
     def on_epoch_end(self, epoch, logs = {}):
         current_val = logs.get(self.val_monitor)
+        if epoch == 0:
+            self.best_validation = current_val
         current_train = logs.get(self.train_monitor)
 
         if current_val is None or current_train is None:
             warnings.warn("Early stopping requires {} and {} available".format(
                 self.val_monitor, self.train_monitor), RuntimeWarning)
 
-        if abs(current_val-current_train)/(current_train) > self.value and epoch > self.min_epochs:
-            if self.verbose > 0:
-                print("Epoch {}: early stopping threshold reached".format(epoch))
-            self.n_failed += 1
-            if self.n_failed > self.patience:
+        if current_val < self.best_validation:
+            self.best_validation = current_val
+            self.best_epoch = epoch
+    
+        # check loss by percentage difference
+        if self.value:
+            if abs(current_val-current_train)/(current_train) > self.value and epoch > self.min_epochs:
+                if self.verbose > 0:
+                    print("Epoch {}: early stopping threshold reached".format(epoch))
+                self.n_failed += 1
+                if self.n_failed > self.patience:
+                    self.model.stop_training = True
+
+        # check loss by validation performance increase
+        if self.stopping_epochs:
+            if self.best_epoch + self.stopping_epochs < epoch and epoch > self.min_epochs:
+                if self.verbose > 0:
+                    print("Validation loss has not decreased for {} epochs".format( epoch - self.best_epoch ))
                 self.model.stop_training = True
+        
 
 
 class DNN():
@@ -69,15 +91,10 @@ class DNN():
             input_samples,
             event_category,
             train_variables,
-            batch_size      = 5000,
             train_epochs    = 500,
-            early_stopping  = 10,
-            optimizer       = None,
-            loss_function   = "categorical_crossentropy",
             test_percentage = 0.2,
             eval_metrics    = None,
-            additional_cut  = None,
-            use_pca         = False):
+            shuffle_seed    = None):
 
         # save some information
         # list of samples to load into dataframe
@@ -96,28 +113,17 @@ class DNN():
         # list of input variables
         self.train_variables = train_variables
 
-        # batch size for training
-        self.batch_size = batch_size
-        # number of training epochs
-        self.train_epochs = train_epochs
-        # number of early stopping epochs
-        self.early_stopping = early_stopping
         # percentage of events saved for testing
         self.test_percentage = test_percentage
+        
+        # number of train epochs
+        self.train_epochs = train_epochs
 
-        # loss function for training
-        self.loss_function = loss_function
         # additional metrics for evaluation of the training process
         self.eval_metrics = eval_metrics
 
-        # additional cuts to be applied after variable norm
-        self.additional_cut = additional_cut
-
-        # option for principle component analysis
-        self.PCA = use_pca
-
         # load data set
-        self.data = self._load_datasets()
+        self.data = self._load_datasets(shuffle_seed)
         self.event_classes = self.data.output_classes
 
         # save variable norm
@@ -133,46 +139,61 @@ class DNN():
         if not os.path.exists(self.plot_path):
             os.makedirs(self.plot_path)
 
-        # dict with architectures for analysis
-        self.architecture = arch.getArchitecture(self.JTstring)
+        # layer names for in and output (needed for c++ implementation)
         self.inputName = "inputLayer"
         self.outputName = "outputLayer"
 
-        # optimizer for training
-        if not(optimizer):
-            self.optimizer = self.architecture["optimizer"]
-        else:
-            self.optimizer = optimizer
-
+           
         
-    def _load_datasets(self):
+    def _load_datasets(self, shuffle_seed):
         ''' load data set '''
-
         return data_frame.DataFrame(
             input_samples       = self.input_samples,
             event_category      = self.event_category,
             train_variables     = self.train_variables,
             test_percentage     = self.test_percentage,
-            norm_variables      = True,
-            use_pca             = self.PCA,
-            additional_cut      = self.additional_cut)
+            shuffleSeed         = shuffle_seed)
 
 
+    def _load_architecture(self, config):
+        ''' load the architecture configs '''
+        # defnie default network configuration
+        self.architecture = {
+            "layers":                   [200],
+            "loss_function":            "categorical_crossentropy",
+            "Dropout":                  0.2,
+            "L2_Norm":                  1e-5,
+            "batch_size":               5000,
+            "optimizer":                optimizers.Adagrad(decay=0.99),
+            "activation_function":      "elu",
+            "output_activation":        "Softmax",
+            "earlystopping_percentage": None,
+            "earlystopping_epochs":     None,
+            }
+
+        for key in config:
+            self.architecture[key] = config[key]
         
-
-    def load_trained_model(self):
+    def load_trained_model(self, inputDirectory):
         ''' load an already trained model '''
-        checkpoint_path = self.cp_path + "/trained_model.h5py"
+        checkpoint_path = inputDirectory+"/checkpoints/trained_model.h5py"
 
+        # get the model
         self.model = keras.models.load_model(checkpoint_path)
+        self.model.summary()
 
+        # evaluate test dataset
         self.model_eval = self.model.evaluate(
             self.data.get_test_data(as_matrix = True),
             self.data.get_test_labels())
 
+        # save predicitons
         self.model_prediction_vector = self.model.predict(
-            self.data.get_test_data(as_matrix = True))
+            self.data.get_test_data(as_matrix = True) )
+        self.model_train_prediction  = self.model.predict(
+            self.data.get_train_data(as_matrix = True) )
 
+        # save predicted classes with argmax
         self.predicted_classes = np.argmax( self.model_prediction_vector, axis = 1)
 
         # save confusion matrix
@@ -183,12 +204,8 @@ class DNN():
         # print evaluations
         from sklearn.metrics import roc_auc_score
         self.roc_auc_score = roc_auc_score(self.data.get_test_labels(), self.model_prediction_vector)
-        print("ROC-AUC score: {}".format(self.roc_auc_score))
+        print("\nROC-AUC score: {}".format(self.roc_auc_score))
 
-        if self.eval_metrics:
-            print("model test loss: {}".format(self.model_eval[0]))
-            for im, metric in enumerate(self.eval_metrics):
-                print("model test {}: {}".format(metric, self.model_eval[im+1]))
 
     def predict_event_query(self, query ):
         events = self.data.get_full_df().query( query )
@@ -206,18 +223,23 @@ class DNN():
             print("-------------------->")
 
 
+
+
     def build_default_model(self):
-        ''' default straight forward DNN '''
+        ''' build default straight forward DNN from architecture dictionary '''
         K.set_learning_phase(True)
+
+        # infer number of input neurons from number of train variables
         number_of_input_neurons     = self.data.n_input_neurons
 
+        # get all the architecture settings needed to build model
         number_of_neurons_per_layer = self.architecture["layers"]
         dropout                     = self.architecture["Dropout"]
-        batchNorm                   = self.architecture["batchNorm"]
         activation_function         = self.architecture["activation_function"]
         l2_regularization_beta      = self.architecture["L2_Norm"]
         output_activation           = self.architecture["output_activation"]
 
+        # define input layer
         Inputs = keras.layers.Input(
             shape = (number_of_input_neurons,),
             name  = self.inputName)
@@ -227,23 +249,23 @@ class DNN():
 
         # loop over dense layers
         for iLayer, nNeurons in enumerate(number_of_neurons_per_layer):
-            X = keras.layers.Dense( nNeurons,
-                activation = activation_function,
-                kernel_regularizer = keras.regularizers.l2(l2_regularization_beta),
-                name = "DenseLayer_"+str(iLayer)
+            X = keras.layers.Dense(
+                units               = nNeurons,
+                activation          = activation_function,
+                kernel_regularizer  = keras.regularizers.l2(l2_regularization_beta),
+                name                = "DenseLayer_"+str(iLayer)
                 )(X)
 
-            if not dropout == 1:
+            # add dropout percentage to layer if activated
+            if not dropout == 0:
                 X = keras.layers.Dropout(dropout)(X)
 
-            if batchNorm:
-                X = keras.layers.BatchNormalization()(X)
-
         # generate output layer
-        X = keras.layers.Dense( self.data.n_output_neurons,
-            activation = output_activation.lower(),
-            kernel_regularizer = keras.regularizers.l2(l2_regularization_beta),
-            name = self.outputName
+        X = keras.layers.Dense( 
+            units               = self.data.n_output_neurons,
+            activation          = output_activation.lower(),
+            kernel_regularizer  = keras.regularizers.l2(l2_regularization_beta),
+            name                = self.outputName
             )(X)
 
         # define model
@@ -254,73 +276,77 @@ class DNN():
 
     def build_model(self, config = None, model = None):
         ''' build a DNN model
-            if none is epecified use default model '''
+            use options defined in 'config' dictionary '''
+
         if config:
-            self.architecture = config
-            print("loading non default net config")
+            self._load_architecture(config)
+            print("loading non default net configs")
 
         if model == None:
-            print("Loading default model")
+            print("building model from config")
             model = self.build_default_model()
 
         # compile the model
         model.compile(
-            loss = self.architecture["loss_function"],
-            optimizer = self.optimizer,
-            metrics = self.eval_metrics)
+            loss        = self.architecture["loss_function"],
+            optimizer   = self.architecture["optimizer"],
+            metrics     = self.eval_metrics)
 
         # save the model
         self.model = model
 
         # save net information
-        out_file = self.save_path+"/model_summary.yml"
-        yml_model = self.model.to_yaml()
+        out_file    = self.save_path+"/model_summary.yml"
+        yml_model   = self.model.to_yaml()
         with open(out_file, "w") as f:
             f.write(yml_model)
-
-        # save initialization of weights in first layer
-        first_layer = self.model.layers[1]
-        self.initial_weights = first_layer.get_weights()[0]
-
 
     def train_model(self):
         ''' train the model '''
 
         # add early stopping if activated
         callbacks = None
-        if self.early_stopping:
-            callbacks = [EarlyStoppingByLossDiff(
-                monitor = "loss",
-                value = self.architecture["earlystopping_percentage"],
-                min_epochs = 50,
-                patience = 10,
-                verbose = 1)]
+        if self.architecture["earlystopping_percentage"] or self.architecture["earlystopping_epochs"]:
+            callbacks = [EarlyStopping(
+                monitor         = "loss",
+                value           = self.architecture["earlystopping_percentage"],
+                min_epochs      = 50,
+                stopping_epochs = self.architecture["earlystopping_epochs"],
+                verbose         = 1)]
 
         # train main net
         self.trained_model = self.model.fit(
             x = self.data.get_train_data(as_matrix = True),
             y = self.data.get_train_labels(),
-            batch_size = self.architecture["batch_size"],
-            epochs = self.train_epochs,
-            shuffle = True,
-            callbacks = callbacks,
-            validation_split = 0.25,
-            sample_weight = self.data.get_train_weights())
+            batch_size          = self.architecture["batch_size"],
+            epochs              = self.train_epochs,
+            shuffle             = True,
+            callbacks           = callbacks,
+            validation_split    = 0.25,
+            sample_weight       = self.data.get_train_weights())
 
-        self.save_model()
+    def save_model(self, argv, execute_dir):
+        ''' save the trained model '''
 
-    def save_model(self):
-        # save trained model
+        # save executed command
+        argv[0] = execute_dir+"/"+argv[0]
+        execute_string = "python "+" ".join(argv)
+        with open(self.cp_path+"/command.sh", "w") as f:
+            f.write(execute_string)
+
+        # save model as h5py file
         out_file = self.cp_path + "/trained_model.h5py"
         self.model.save(out_file)
         print("saved trained model at "+str(out_file))
 
+        # save config of model
         model_config = self.model.get_config()
         out_file = self.cp_path +"/trained_model_config"
         with open(out_file, "w") as f:
             f.write( str(model_config))
         print("saved model config at "+str(out_file))
 
+        # save weights of network
         out_file = self.cp_path +"/trained_model_weights.h5"
         self.model.save_weights(out_file)
         print("wrote trained weights to "+str(out_file))
@@ -332,6 +358,7 @@ class DNN():
 
         K.set_learning_phase(False)
 
+        # save checkpoint files (needed for c++ implementation)
         out_file = self.cp_path + "/trained_model"
         sess = K.get_session()
         saver = tf.train.Saver()
@@ -344,6 +371,14 @@ class DNN():
         configs["outputName"] = self.outputName+"/"+configs["output_activation"]
         configs = {key: configs[key] for key in configs if not "optimizer" in key}
 
+        # more information saving
+        configs["inputData"] = self.input_samples.input_path
+        configs["eventClasses"] = self.input_samples.getClassConfig()
+        configs["JetTagCategory"] = self.JTstring
+        configs["trainEpochs"] = self.train_epochs
+        configs["trainVariables"] = self.train_variables
+        configs["shuffleSeed"] = self.data.shuffleSeed
+
         json_file = self.cp_path + "/net_config.json"
         with open(json_file, "w") as jf:
             json.dump(configs, jf, indent = 2, separators = (",", ": "))
@@ -353,7 +388,7 @@ class DNN():
     def eval_model(self):
         ''' evaluate trained model '''
 
-        # prenet evaluation
+        # evaluate test dataset
         self.model_eval = self.model.evaluate(
             self.data.get_test_data(as_matrix = True),
             self.data.get_test_labels())
@@ -364,6 +399,8 @@ class DNN():
         # save predicitons
         self.model_prediction_vector = self.model.predict(
             self.data.get_test_data(as_matrix = True) )
+        self.model_train_prediction  = self.model.predict(
+            self.data.get_train_data(as_matrix = True) )
 
         # save predicted classes with argmax
         self.predicted_classes = np.argmax( self.model_prediction_vector, axis = 1)
@@ -376,45 +413,24 @@ class DNN():
         # print evaluations
         from sklearn.metrics import roc_auc_score
         self.roc_auc_score = roc_auc_score(self.data.get_test_labels(), self.model_prediction_vector)
-        print("ROC-AUC score: {}".format(self.roc_auc_score))
+        print("\nROC-AUC score: {}".format(self.roc_auc_score))
 
         if self.eval_metrics:
             print("model test loss: {}".format(self.model_eval[0]))
             for im, metric in enumerate(self.eval_metrics):
                 print("model test {}: {}".format(metric, self.model_eval[im+1]))
 
-        # evaluate non trainiable data
-        print("loading non trainable data")
-        self.data.get_non_train_samples()
-        if len(self.data.non_train_samples) == 0:
-            print("... no additional data found")
-
-        for sample in self.data.non_train_samples:
-            sample.addPrediction( self.model, self.train_variables )
                 
         
-
-    def save_confusionMatrix(self, location, save_roc):
-        ''' save confusion matrix as a line in output file '''
-        flattened_matrix = self.confusion_matrix.flatten()
-        labels = ["{}_in_{}_node".format(pred, true) for true in self.event_classes for pred in self.event_classes]
-        data = {label: [float(flattened_matrix[i])] for i, label in enumerate(labels)}
-        data["ROC"] = [float(self.roc_auc_score)]
-        df = pd.DataFrame.from_dict(data)
-        with pd.HDFStore(location, "a") as store:
-            store.append("data", df, index = False)
-        print("saved confusion matrix at "+str(location))
-
-    # --------------------------------------------------------------------
-    # result plotting functions
-    # --------------------------------------------------------------------
     def get_input_weights(self):
-        ''' get the weights of the input layer '''
+        ''' get the weights of the input layer and sort input variables by weight sum '''
+
+        # get weights 
         first_layer = self.model.layers[1]
         weights = first_layer.get_weights()[0]
+
         self.weight_dict = {}
-        print("getting weights in first layer after training:")
-        for out_weights, variable in zip( weights, self.train_variables ):
+        for out_weights, variable in zip(weights, self.train_variables):
             w_sum = np.sum(np.abs(out_weights))
             self.weight_dict[variable] = w_sum
 
@@ -426,74 +442,81 @@ class DNN():
                 print("{:50s}: {}".format(key, val))
                 f.write("{},{}\n".format(key,val))
         print("wrote weight ranking to "+str(rank_path))
-            
-        
-            
 
+
+
+
+    # --------------------------------------------------------------------
+    # result plotting functions
+    # --------------------------------------------------------------------
     def plot_metrics(self, privateWork = False):
+        import matplotlib.pyplot as plt
+        plt.rc('text', usetex=True)
+
         ''' plot history of loss function and evaluation metrics '''
         metrics = ["loss"]
         if self.eval_metrics: metrics += self.eval_metrics
 
+        # loop over metrics and generate matplotlib plot
         for metric in metrics:
             plt.clf()
+            # get history of train and validation scores
             train_history = self.model_history[metric]
             val_history = self.model_history["val_"+metric]
 
             n_epochs = len(train_history)
             epochs = np.arange(1,n_epochs+1,1)
 
+            # plot histories
             plt.plot(epochs, train_history, "b-", label = "train", lw = 2)
             plt.plot(epochs, val_history, "r-", label = "validation", lw = 2)
             if privateWork:
                 plt.title("CMS private work", loc = "left", fontsize = 16)
 
+            # add title
             title = self.categoryLabel
             title = title.replace("\\geq", "$\geq$")
             plt.title(title, loc = "right", fontsize = 16)
 
+            # make it nicer
             plt.grid()
             plt.xlabel("epoch", fontsize = 16)
             plt.ylabel(metric, fontsize = 16)
 
+            # add legend
             plt.legend()
 
+            # save
             out_path = self.save_path + "/model_history_"+str(metric)+".pdf"
             plt.savefig(out_path)
             print("saved plot of "+str(metric)+" at "+str(out_path))
 
 
 
-    def plot_outputNodes(self, log = False, cut_on_variable = None, plot_nonTrainData = False):
-        ''' plot distribution in outputNodes '''
-        nbins = 20
-        bin_range = [0., 1.]
 
+    def plot_outputNodes(self, log = False, printROC = False, signal_class = None, 
+                        privateWork = False,
+                        nbins = 20, bin_range = [0.,1.]):
+
+        ''' plot distribution in outputNodes '''
         plotNodes = plottingScripts.plotOutputNodes(
             data                = self.data,
             prediction_vector   = self.model_prediction_vector,
             event_classes       = self.event_classes,
             nbins               = nbins,
             bin_range           = bin_range,
-            signal_class        = "ttHbb",
+            signal_class        = signal_class,
             event_category      = self.categoryLabel,
             plotdir             = self.plot_path,
-            logscale            = log,
-            plot_nonTrainData   = plot_nonTrainData)
+            logscale            = log)
 
-        if cut_on_variable:
-            plotNodes.set_cutVariable(
-                cutClass = cut_on_variable["class"],
-                cutValue = cut_on_variable["value"])
+        plotNodes.plot(ratio = False, printROC = printROC, privateWork = privateWork)
 
-        plotNodes.set_printROCScore(True)
-        plotNodes.plot(ratio = False)
 
-    def plot_discriminators(self, log = False, plot_nonTrainData = False, signal_class = "ttHbb"):
+    def plot_discriminators(self, log = False, printROC = False, privateWork = False,
+                        signal_class = None, nbins = 18, bin_range = [0.1,1.]):
+
         ''' plot all events classified as one category '''
-        nbins = 18
-        bin_range = [0.1, 1.]
-
         plotDiscrs = plottingScripts.plotDiscriminators(
             data                = self.data,
             prediction_vector   = self.model_prediction_vector,
@@ -503,155 +526,10 @@ class DNN():
             signal_class        = signal_class,
             event_category      = self.categoryLabel,
             plotdir             = self.plot_path,
-            logscale            = log,
-            plot_nonTrainData   = plot_nonTrainData)
+            logscale            = log)
 
-        plotDiscrs.set_printROCScore(True)
-        plotDiscrs.plot(ratio = False)
+        plotDiscrs.plot(ratio = False, printROC = printROC, privateWork = privateWork)
 
-
-    def plot_input_output_correlation(self, plot = False):
-
-        # get input variables from test set TODO get them unnormed
-        input_data = self.data.get_test_data(as_matrix = False, normed = False)
-
-        # initialize empty dataframe
-        df = pd.DataFrame()
-        plt.figure(figsize = [10,10])
-
-        # correlation plot path
-        plt_path = self.save_path + "/correlations"
-        if not os.path.exists(plt_path):
-            os.makedirs(plt_path)
-
-        # loop over classes
-        for i_cls, cls in enumerate(self.event_classes):
-
-            # get predictions for current output note
-            pred_values = self.model_prediction_vector[:,i_cls]
-
-            # correlation values for class
-            corr_values = {}
-
-            # loop over input variables
-            for i_var, var in enumerate(self.train_variables):
-                # scatter plot:
-                # x-axis: input variable value
-                # y-axis: predicted discriminator output
-
-                var_values = input_data[var].values
-
-                assert( len(var_values) == len(pred_values) )
-
-                plt.hist2d(var_values, pred_values,
-                    bins = [min(binning.binning[var]["nbins"],20), 20],
-                    norm = LogNorm())
-                plt.colorbar()
-
-                # calculate correlation value
-                correlation = np.corrcoef(var_values, pred_values)[0][1]
-                print("correlation between {} and {}: {}".format(
-                    cls, var, correlation))
-
-                # write correlation value on plot
-                plt.title( correlation, loc = "left")
-                plt.xlabel(var)
-                plt.ylabel(cls+"_predicted")
-
-                out_name = plt_path + "/correlation_{}_{}.pdf".format(cls,var)
-                plt.savefig(out_name.replace("[","_").replace("]",""))
-                plt.clf()
-
-                corr_values[var] = correlation
-
-            # save correlation value to dataframe
-            df[cls] = pd.Series( corr_values )
-
-        # save dataframe of correlations
-        out_path = self.save_path + "/correlation_matrix.h5"
-        df.to_hdf(out_path, "correlations")
-        print("saved correlation matrix at "+str(out_path))
-
-
-    def plot_output_output_correlation(self, plot = False):
-        corr_path = self.save_path + "/output_correlations/"
-        if not os.path.exists(corr_path):
-            os.makedirs(corr_path)
-
-        correlation_matrix = []
-        for i_cls, xcls in enumerate(self.event_classes):
-            correlations = []
-            xvalues = self.model_prediction_vector[:,i_cls]
-
-            for j_cls, ycls in enumerate(self.event_classes):
-                yvalues = self.model_prediction_vector[:,j_cls]
-
-                corr = np.corrcoef( xvalues, yvalues)[0][1]
-                print("correlation between {} and {}: {}".format(xcls, ycls, corr))
-
-                correlations.append(corr)
-
-                if plot and i_cls < j_cls:
-                    plt.clf()
-                    plt.hist2d( xvalues, yvalues, bins = [20, 20],
-                        weights = self.data.get_lumi_weights(),
-                        norm = LogNorm(),
-                        cmap = "RdBu")
-                    plt.colorbar()
-
-                    plt.title("corr = {}".format(corr), loc = "left")
-                    plt.title(self.categoryLabel, loc = "right")
-
-                    plt.xlabel(xcls+" output node")
-                    plt.ylabel(ycls+" output node")
-
-                    out_name = corr_path + "/correlation_{}_{}.pdf".format(xcls, ycls)
-                    plt.savefig(out_name)
-
-            correlation_matrix.append(correlations)
-
-        # plot correlation matrix
-        n_classes = len(self.event_classes)
-
-        x = np.arange(0, n_classes+1, 1)
-        y = np.arange(0, n_classes+1, 1)
-
-        xn, yn = np.meshgrid(x,y)
-
-        plt.clf()
-        plt.figure(figsize = [10,10])
-        plt.pcolormesh(xn, yn, correlation_matrix, vmin = -1, vmax = 1)
-        plt.colorbar()
-
-        plt.xlim(0, n_classes)
-        plt.ylim(0, n_classes)
-
-        plt.xlabel("output nodes")
-        plt.ylabel("output nodes")
-
-        plt.title(self.categoryLabel, loc = "right")
-
-        # add textlabel
-        for yit in range(n_classes):
-            for xit in range(n_classes):
-                plt.text(xit+0.5,yit+0.5,
-                    "{:.3f}".format(correlation_matrix[yit][xit]),
-                    horizontalalignment = "center",
-                    verticalalignment = "center")
-
-        ax = plt.gca()
-        ax.set_xticks( np.arange((x.shape[0]-1))+0.5, minor = False)
-        ax.set_yticks( np.arange((y.shape[0]-1))+0.5, minor = False)
-
-        ax.set_xticklabels(self.event_classes)
-        ax.set_yticklabels(self.event_classes)
-
-        ax.set_aspect("equal")
-
-        out_path = self.save_path + "/output_correlation.pdf"
-        plt.savefig(out_path)
-        print("saved output correlation at "+str(out_path))
-        plt.clf()
 
     def plot_confusionMatrix(self, norm_matrix = True, privateWork = False, printROC = False):
         ''' plot confusion matrix '''
@@ -662,6 +540,55 @@ class DNN():
             event_category      = self.categoryLabel,
             plotdir             = self.save_path)
 
-        plotCM.set_printROCScore(printROC)
+        plotCM.plot(norm_matrix = norm_matrix, privateWork = privateWork, printROC = printROC)
 
-        plotCM.plot(norm_matrix = norm_matrix, privateWork = privateWork)
+    def plot_closureTest(self, log = False, privateWork = False,
+                        signal_class = None, nbins = 20, bin_range = [0.,1.]):
+        ''' plot comparison between train and test samples '''
+
+        closureTest = plottingScripts.plotClosureTest(
+            data                = self.data,
+            test_prediction     = self.model_prediction_vector,
+            train_prediction    = self.model_train_prediction,
+            event_classes       = self.event_classes,
+            nbins               = nbins,
+            bin_range           = bin_range,
+            signal_class        = signal_class,
+            event_category      = self.categoryLabel,
+            plotdir             = self.plot_path,
+            logscale            = log)
+
+        closureTest.plot(ratio = False, privateWork = privateWork)
+
+
+
+
+def loadDNN(inputDirectory, outputDirectory):
+    # get net config json
+    configFile = inputDirectory+"/checkpoints/net_config.json"
+    if not os.path.exists(configFile): 
+        sys.exit("config needed to load trained DNN not found\n{}".format(configFile))
+
+    with open(configFile) as f:
+        config = f.read()
+    config = json.loads(config)
+
+    # load samples
+    input_samples = data_frame.InputSamples(config["inputData"])
+
+    for sample in config["eventClasses"]:
+        input_samples.addSample(sample["samplePath"], sample["sampleLabel"], normalization_weight = sample["sampleWeight"])
+
+    # init DNN class
+    dnn = DNN(
+        save_path       = outputDirectory,
+        input_samples   = input_samples,
+        event_category  = config["JetTagCategory"],
+        train_variables = config["trainVariables"],
+        shuffle_seed    = config["shuffleSeed"]
+        )
+        
+    # load the trained model
+    dnn.load_trained_model(inputDirectory)
+
+    return dnn
