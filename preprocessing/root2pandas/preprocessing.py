@@ -38,7 +38,6 @@ parser.add_option("-n", "--name", dest="Name", default="dnn",
 if not os.path.isabs(options.variableSelection):
     sys.path.append(basedir+"/variable_sets/")
     variable_set = __import__(options.variableSelection)
-    print(variable_set.all_variables)
 elif os.path.exists(options.variableSelection):
     variable_set = __import__(options.variableSelection)
 else:
@@ -47,6 +46,9 @@ else:
 if not os.path.isabs(options.outputDir):
     outputdir = basedir+"/workdir/"+options.outputDir
 elif os.path.exists(options.outputDir):
+    outputdir=options.outputDir
+elif os.path.exists(os.path.dirname(options.outputDir)):
+    os.makedirs(options.outputDir)
     outputdir=options.outputDir
 else:
     sys.exit("ERROR: Output Directory does not exist!")
@@ -61,20 +63,26 @@ single_el_sel = "(N_LooseMuons == 0 and N_TightElectrons == 1 and (Triggered_HLT
 
 base_selection = "("+base+" and ("+single_mu_sel+" or "+single_el_sel+"))"
 
-ttH_selection = "(Evt_Odd == 1)"
 
 # define output classes
+ttH_selection = "(Evt_Odd == 1)"
 ttH_categories = root2pandas.EventCategories()
 ttH_categories.addCategory("ttHbb", selection = None)
 
-
 ttbar_categories = root2pandas.EventCategories()
 ttbar_categories.addCategory("ttbb", selection = "(GenEvt_I_TTPlusBB == 3 and GenEvt_I_TTPlusCC == 0)")
+
 ttbar_categories.addCategory("tt2b", selection = "(GenEvt_I_TTPlusBB == 2 and GenEvt_I_TTPlusCC == 0)")
 ttbar_categories.addCategory("ttb",  selection = "(GenEvt_I_TTPlusBB == 1 and GenEvt_I_TTPlusCC == 0)")
+
+# merged ttb
+#ttbar_categories.addCategory("ttb",  selection = "((GenEvt_I_TTPlusBB == 1 or GenEvt_I_TTPlusBB == 2) and GenEvt_I_TTPlusCC == 0)")
+
 ttbar_categories.addCategory("ttlf", selection = "(GenEvt_I_TTPlusBB == 0 and GenEvt_I_TTPlusCC == 0)")
 ttbar_categories.addCategory("ttcc", selection = "(GenEvt_I_TTPlusBB == 0 and GenEvt_I_TTPlusCC == 1)")
 
+ttZ_categories = root2pandas.EventCategories()
+ttZ_categories.addCategory("ttZbb", selection = None)
 
 # initialize dataset class
 dataset = root2pandas.Dataset(
@@ -89,24 +97,35 @@ dataset.addBaseSelection(base_selection)
 
 
 ntuplesPath = "/nfs/dust/cms/user/vdlinden/ttH_2018/ntuples/ntuples_v5_forDNN/"
-memPath = "/nfs/dust/cms/user/mwassmer/ttH_2018/MEMs_v2/"
+karimPath   = "/nfs/dust/cms/user/kelmorab/ttH_2018/ntuples_v5/"
+janPath     = "/nfs/dust/cms/user/vdlinden/ntuples2019/ttZ_DNN_v2/"
+memPath     = "/nfs/dust/cms/user/mwassmer/ttH_2018/MEMs_v2/"
 
 # add samples to dataset
 dataset.addSample(
     sampleName  = "ttHbb",
-    ntuples     = ntuplesPath+"/ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8_new_pmx/*nominal*.root",
+    ntuples     = janPath+"/ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8_new_pmx/*nominal*.root",
     categories  = ttH_categories,
     selections  = ttH_selection,
     MEMs        = memPath+"/ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8/*.root",
-   ) 
+    ) 
 
 dataset.addSample(
     sampleName  = "TTToSL",
-    ntuples     = ntuplesPath+"/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8_new_pmx/*nominal*.root",
+    ntuples     = janPath+"/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8_new_pmx/*nominal*.root",
     categories  = ttbar_categories,
     selections  = None,#ttbar_selection,
     MEMs        = memPath+"/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/*.root",
-      )
+    )
+
+dataset.addSample(
+    sampleName  = "ttZbb",
+    ntuples     = janPath+"/TTZToQQ_TuneCP5_13TeV-amcatnlo-pythia8_v2/*nominal*.root",
+    categories  = ttZ_categories,
+    selections  = None,
+    MEMs        = memPath+"/TTZToQQ_TuneCP5_13TeV-amcatnlo-pythia8/*.root",
+    )
+
 # initialize variable list 
 dataset.addVariables(variable_set.all_variables)
 
