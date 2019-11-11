@@ -27,10 +27,15 @@ import keras.layers as layer
 from keras import backend as K
 import pandas as pd
 
+
+
 # Limit gpu usage
 import tensorflow as tf
 
 import matplotlib.pyplot as plt
+
+global x_train_opt, y_train_opt, x_test_opt, y_test_opt
+
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
@@ -238,7 +243,7 @@ class DNN():
 
 
 
-    def predict_event_query(self, query ):
+    def predict_event_query(self, query):
         events = self.data.get_full_df().query( query )
         print(str(events.shape[0]) + " events matched the query '"+str(query)+"'.")
 
@@ -476,6 +481,15 @@ class DNN():
             print("model test loss: {}".format(self.model_eval[0]))
             for im, metric in enumerate(self.eval_metrics):
                 print("model test {}: {}".format(metric, self.model_eval[im+1]))
+
+
+    def get_data(self):
+
+        x_train_opt = self.data.get_train_data(as_matrix = True)
+        y_train_opt = self.data.get_train_labels()
+        print(y_train_opt.shape)
+        x_test_opt = self.data.get_test_data(as_matrix = True)
+        t_test_opt = self.data.get_test_labels()
 
     def get_ranges(self):
         if not self.data.binary_classification:

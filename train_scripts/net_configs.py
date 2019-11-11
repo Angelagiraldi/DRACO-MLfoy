@@ -1,4 +1,5 @@
 from keras import optimizers
+from keras_adabound import AdaBound
 
 config_dict = {}
 
@@ -113,7 +114,7 @@ config_dict["ttH_2017_DL"] = {
         "Dropout":                  0.30,
         "L1_Norm":                  0.,
         "L2_Norm":                  1e-3,
-        "batch_size":               64,
+        "batch_size":               32,
         "optimizer":                optimizers.Adadelta(),
         "activation_function":      "relu",
         "output_activation":        "Sigmoid",
@@ -121,44 +122,183 @@ config_dict["ttH_2017_DL"] = {
         "earlystopping_epochs":      100,
         }
 
+
+
 config_dict["binary_crossentropy_Adam"] = {
         "layers":                   [200,100],
         "loss_function":            "binary_crossentropy",
         "Dropout":                  0.30,
-        "L2_Norm":                  1e-3,
-        "L1_Norm":                  1e-4,
-        "batch_size":               64,
-        "optimizer":                optimizers.Adam(1e-3),
-        "activation_function":      "elu",
+        "L2_Norm":                  5e-4,
+        "L1_Norm":                  0,
+        "batch_size":               32,
+        "optimizer":                optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, amsgrad=False),
+        "activation_function":      "selu",
         "output_activation":        "Sigmoid",
         "earlystopping_percentage":  0.02,
         "earlystopping_epochs":      100,
 }
-
-config_dict["binary_squared_Adadelta"] = {
+config_dict["binary_squared_hinge_Adam"] = {
         "layers":                   [200,100],
         "loss_function":            "squared_hinge",
-        "Dropout":                  0.3,
+        "Dropout":                  0.30,
+        "L2_Norm":                  5e-4,
         "L1_Norm":                  0,
-        "L2_Norm":                  0.,
-        "batch_size":               4096,
-        "optimizer":                optimizers.Adadelta(),
-        "activation_function":      "elu",
-        "output_activation":        "Tanh",
-        "earlystopping_percentage": 0.02,
-        "earlystopping_epochs":     100,
-}
-
-config_dict["binary_squared_SGD"] = {
-        "layers":                   [100,100],
-        "loss_function":            "squared_hinge",
-        "Dropout":                  0.40,
-        "L1_Norm":                  0,
-        "L2_Norm":                  1e-5,
-        "batch_size":               64,
-        "optimizer":                optimizers.SGD(1e-3),
+        "batch_size":               32,
+        "optimizer":                optimizers.Adam(lr=0.001, beta_1=0.99, beta_2=0.999, amsgrad=False),
         "activation_function":      "tanh",
         "output_activation":        "Tanh",
         "earlystopping_percentage":  0.02,
         "earlystopping_epochs":      100,
 }
+
+
+
+
+
+config_dict["binary_squared_hinge_AMSGrad"] = {
+        "layers":                   [200,100],
+        "loss_function":            "squared_hinge",
+        "Dropout":                  0.30,
+        "L2_Norm":                  5e-4,
+        "L1_Norm":                  0,
+        "batch_size":               32,
+        "optimizer":                optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, amsgrad=True),
+        "activation_function":      "tanh",
+        "output_activation":        "Tanh",
+        "earlystopping_percentage":  0.02,
+        "earlystopping_epochs":      100,
+}
+
+
+
+
+config_dict["binary_crossentropy_AdaBound"] = {
+        "layers":                   [200,100],
+        "loss_function":            "binary_crossentropy",
+        "Dropout":                  0.30,
+        "L2_Norm":                  5e-4,
+        "L1_Norm":                  0,
+        "batch_size":               32,
+        "optimizer":                AdaBound(),
+        "activation_function":      "selu",
+        "output_activation":        "Sigmoid",
+        "earlystopping_percentage":  0.02,
+        "earlystopping_epochs":      100,
+}
+config_dict["binary_squared_hinge_AdaBound"] = {
+        "layers":                   [200,100],
+        "loss_function":            "squared_hinge",
+        "Dropout":                  0.30,
+        "L2_Norm":                  5e-4,
+        "L1_Norm":                  0,
+        "batch_size":               32,
+        "optimizer":                AdaBound(),
+        "activation_function":      "tanh",
+        "output_activation":        "Tanh",
+        "earlystopping_percentage":  0.02,
+        "earlystopping_epochs":      100,
+}
+
+
+
+
+#config_dict["binary_crossentropy_AMSBound"] = {
+#        "layers":                   [200,100],
+#        "loss_function":            "binary_crossentropy",
+#        "Dropout":                  0.30,
+#        "L2_Norm":                  5e-4,
+#        "L1_Norm":                  0,
+#        "batch_size":               32,
+#        "optimizer":                AdaBound(),
+#        "activation_function":      "selu",
+#        "output_activation":        "Sigmoid",
+#        "earlystopping_percentage":  0.02,
+#        "earlystopping_epochs":      100,
+#}
+#config_dict["binary_squared_hinge_AMSBound"] = {
+#        "layers":                   [200,100],
+#        "loss_function":            "squared_hinge",
+#        "Dropout":                  0.30,
+#        "L2_Norm":                  5e-4,
+#        "L1_Norm":                  0,
+#        "batch_size":               32,
+#        "optimizer":                AdaBound(),
+#        "activation_function":      "tanh",
+#        "output_activation":        "Tanh",
+#        "earlystopping_percentage":  0.02,
+#        "earlystopping_epochs":      100,
+#}
+
+
+
+config_dict["binary_crossentropy_SGD"] = {
+        "layers":                   [200,100],
+        "loss_function":            "binary_crossentropy",
+        "Dropout":                  0.40,
+        "L2_Norm":                  5e-4,
+        "L1_Norm":                  0,
+        "batch_size":               32,
+        "optimizer":                optimizers.SGD(lr=0.001),
+        "activation_function":      "selu",
+        "output_activation":        "Sigmoid",
+        "earlystopping_percentage":  0.02,
+        "earlystopping_epochs":      100,
+}
+config_dict["binary_squared_SGD"] = {
+        "layers":                   [200,100],
+        "loss_function":            "squared_hinge",
+        "Dropout":                  0.40,
+        "L2_Norm":                  5e-4,
+        "L1_Norm":                  0,
+        "batch_size":               32,
+        "optimizer":                optimizers.SGD(lr=0.001),
+        "activation_function":      "tanh",
+        "output_activation":        "Tanh",
+        "earlystopping_percentage":  0.02,
+        "earlystopping_epochs":      100,
+}
+
+
+
+config_dict["ttH_2017_DL"] = {
+        "layers":                   [200,100],
+        "loss_function":            "categorical_crossentropy",
+        "Dropout":                  0.30,
+        "L1_Norm":                  0.,
+        "L2_Norm":                  1e-3,
+        "batch_size":               32,
+        "optimizer":                optimizers.Adadelta(),
+        "activation_function":      "relu",
+        "output_activation":        "Sigmoid",
+        "earlystopping_percentage":  0.02,
+        "earlystopping_epochs":      100,
+        }
+
+
+config_dict["binary_crossentropy_AMSGrad"] = {
+        "layers":                   [200,100],
+        "loss_function":            "binary_crossentropy",
+        "Dropout":                  0.30,
+        "L2_Norm":                  5e-4,
+        "L1_Norm":                  0,
+        "batch_size":               64,
+        "optimizer":                optimizers.Adam(lr=0.001, beta_1=0.99, beta_2=0.999, amsgrad=True),
+        "activation_function":      "selu",
+        "output_activation":        "Sigmoid",
+        "earlystopping_percentage":  0.02,
+        "earlystopping_epochs":      100,
+}
+
+config_dict["ttH_2017_DLtthbbPowheg_Adadelta"] = {
+"layers":                   [100,50,50],
+"loss_function":            "categorical_crossentropy",
+"Dropout":                  0.30,
+"L2_Norm":                  1e-3,
+"batch_size":               8,
+"L1_Norm":                  0,
+"optimizer":                optimizers.Adam(lr=0.0001),
+"activation_function":      "selu",
+"output_activation":        "Softmax",
+"earlystopping_percentage": 0.02,
+"earlystopping_epochs":     100,
+        }

@@ -20,7 +20,7 @@ parser = optparse.OptionParser(usage=usage)
 parser.add_option("-o", "--outputdirectory", dest="outputDir",default="InputFeatures",
         help="DIR for output", metavar="outputDir")
 
-parser.add_option("-v", "--variableselection", dest="variableSelection",default="variables_ttHbb_DL_inputvalidation_2016",
+parser.add_option("-v", "--variableselection", dest="variableSelection",default="variables_ttHbb_DL_inputvalidation_2017",
         help="FILE for variables used to train DNNs", metavar="variableSelection")
 
 parser.add_option("-t", "--treeName",action='append', default=[],
@@ -102,117 +102,166 @@ for i in range(15):
     )
 
 #ttbar_bb samples
-for i in range(5):
-    dataset.addSample(
-        sampleName  = "ttbarNotau_bb"+str(i),
-        ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotauBbbar_fromDilepton_PSweights_"+str(i)+".root",
-        categories  = ttbar_bb_categories,
-        selections  = None
-    )
-    dataset.addSample(
-        sampleName  = "ttbarOnlytau_bb"+str(i),
-        ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytauBbbar_fromDilepton_PSweights_"+str(i)+".root",
-        categories  = ttbar_bb_categories,
-        selections  = None
-    )
-#dataset.addSample(
-#    sampleName  = "ttbarNotau_bb",
-#    ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotauBbbar_fromDilepton_ttbbPowheg.root",
-#    categories  = ttbar_bb_categories,
-#    selections  = None
-#)
-#dataset.addSample(
-#    sampleName  = "ttbarOnlytau_bb",
-#    ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytauBbbar_fromDilepton_ttbbPowheg.root",
-#    categories  = ttbar_bb_categories,
-#    selections  = None
-#)
+#for i in range(5):
+#    dataset.addSample(
+#        sampleName  = "ttbarNotau_bb"+str(i),
+#        ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotauBbbar_fromDilepton_PSweights_"+str(i)+".root",
+#        categories  = ttbar_bb_categories,
+#        selections  = None
+#    )
+#    dataset.addSample(
+#        sampleName  = "ttbarOnlytau_bb"+str(i),
+#        ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytauBbbar_fromDilepton_PSweights_"+str(i)+".root",
+#        categories  = ttbar_bb_categories,
+#        selections  = None
+#    )
+dataset.addSample(
+    sampleName  = "ttbarNotau_bb",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotauBbbar_fromDilepton_ttbbPowheg_ext1.root",
+    categories  = ttbar_bb_categories,
+    selections  = None
+)
+dataset.addSample(
+    sampleName  = "ttbarOnlytau_bb",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytauBbbar_fromDilepton_ttbbPowheg_ext1.root",
+    categories  = ttbar_bb_categories,
+    selections  = None
+)
+dataset.addSample(
+    sampleName  = "ttbar_categoriesttbarNotau_bb",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotauBbbar_fromDilepton_ttbbPowheg_ext1.root",
+    categories  = ttbar_categories,
+    selections  = None
+)
+dataset.addSample(
+    sampleName  = "ttbar_categoriesttbarOnlytau_bb",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytauBbbar_fromDilepton_ttbbPowheg_ext1.root",
+    categories  = ttbar_categories,
+    selections  = None
+)
 
 #ttbar_b samples
-for i in range(5):
-    dataset.addSample(
-        sampleName  = "ttbarNotau_b"+str(i),
-        ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotauB_fromDilepton_PSweights_"+str(i)+".root",
-        categories  = ttbar_b_categories,
-        selections  = None
-    )
-    dataset.addSample(
-        sampleName  = "ttbarOnlytau_b"+str(i),
-        ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytauB_fromDilepton_PSweights_"+str(i)+".root",
-        categories  = ttbar_b_categories,
-        selections  = None
-    )
-#dataset.addSample(
-#    sampleName  = "ttbarNotau_b",
-#    ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotauB_fromDilepton_ttbbPowheg.root",
-#    categories  = ttbar_b_categories,
-#    selections  = None
-#)
-#dataset.addSample(
-#    sampleName  = "ttbarOnlytau_b",
-#    ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytauB_fromDilepton_ttbbPowheg.root",
-#    categories  = ttbar_b_categories,
-#    selections  = None
-#)
+#for i in range(5):
+#    dataset.addSample(
+#        sampleName  = "ttbarNotau_b"+str(i),
+#        ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotauB_fromDilepton_PSweights_"+str(i)+".root",
+#        categories  = ttbar_b_categories,
+#        selections  = None
+#    )
+#    dataset.addSample(
+#        sampleName  = "ttbarOnlytau_b"+str(i),
+#        ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytauB_fromDilepton_PSweights_"+str(i)+".root",
+#        categories  = ttbar_b_categories,
+#        selections  = None
+#    )
+dataset.addSample(
+    sampleName  = "ttbarNotau_b",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotauB_fromDilepton_ttbbPowheg_ext1.root",
+    categories  = ttbar_b_categories,
+    selections  = None
+)
+dataset.addSample(
+    sampleName  = "ttbarOnlytau_b",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytauB_fromDilepton_ttbbPowheg_ext1.root",
+    categories  = ttbar_b_categories,
+    selections  = None
+)
+dataset.addSample(
+    sampleName  = "ttbar_categoriesttbarNotau_b",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotauB_fromDilepton_ttbbPowheg_ext1.root",
+    categories  = ttbar_categories,
+    selections  = None
+)
+dataset.addSample(
+    sampleName  = "ttbar_categoriesttbarOnlytau_b",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytauB_fromDilepton_ttbbPowheg_ext1.root",
+    categories  = ttbar_categories,
+    selections  = None
+)
 
 #ttbar_2b samples
-for i in range(5):
-    dataset.addSample(
-        sampleName  = "ttbarNotau_2b"+str(i),
-        ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotau2b_fromDilepton_PSweights_"+str(i)+".root",
-        categories  = ttbar_2b_categories,
-        selections  = None
-    )
-    dataset.addSample(
-        sampleName  = "ttbarOnlytau_2b"+str(i),
-        ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytau2b_fromDilepton_PSweights_"+str(i)+".root",
-        categories  = ttbar_2b_categories,
-        selections  = None
-    )
-#dataset.addSample(
-#    sampleName  = "ttbarNotau_2b",
-#    ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotauB_fromDilepton_ttbbPowheg.root",
-#    categories  = ttbar_2b_categories,
-#    selections  = None
-#)
-#dataset.addSample(
-#    sampleName  = "ttbarOnlytau_2b",
-#    ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytau2b_fromDilepton_ttbbPowheg.root",
-#    categories  = ttbar_2b_categories,
-#    selections  = None
-#)
+#for i in range(5):
+#    dataset.addSample(
+#        sampleName  = "ttbarNotau_2b"+str(i),
+#        ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotau2b_fromDilepton_PSweights_"+str(i)+".root",
+#        categories  = ttbar_2b_categories,
+#        selections  = None
+#    )
+#    dataset.addSample(
+#        sampleName  = "ttbarOnlytau_2b"+str(i),
+#        ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytau2b_fromDilepton_PSweights_"+str(i)+".root",
+#        categories  = ttbar_2b_categories,
+#        selections  = None
+#    )
+dataset.addSample(
+    sampleName  = "ttbarNotau_2b",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotauB_fromDilepton_ttbbPowheg.root",
+    categories  = ttbar_2b_categories,
+    selections  = None
+)
+dataset.addSample(
+    sampleName  = "ttbarOnlytau_2b",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytau2b_fromDilepton_ttbbPowheg.root",
+    categories  = ttbar_2b_categories,
+    selections  = None
+)
+dataset.addSample(
+    sampleName  = "ttbar_categoriesttbarNotau_2b",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonNotauB_fromDilepton_ttbbPowheg.root",
+    categories  = ttbar_categories,
+    selections  = None
+)
+dataset.addSample(
+    sampleName  = "ttbar_categoriesttbarOnlytau_2b",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonOnlytau2b_fromDilepton_ttbbPowheg.root",
+    categories  = ttbar_categories,
+    selections  = None
+)
 
 #ttbar_cc samples
-for i in range(5):
-    dataset.addSample(
-        sampleName  = "ttbar_cc"+str(i),
-        ntuples     = ntuplesPath+"/*/*_ttbarDileptonPlustauCcbar_fromDilepton_PSweights_"+str(i)+".root",
-        categories  = ttbar_cc_categories,
-        selections  = None
-    )
+#for i in range(5):
+#    dataset.addSample(
+#        sampleName  = "ttbar_cc"+str(i),
+#        ntuples     = ntuplesPath+"/*/*_ttbarDileptonPlustauCcbar_fromDilepton_PSweights_"+str(i)+".root",
+#        categories  = ttbar_cc_categories,
+#        selections  = None
+#    )
 
-#dataset.addSample(
-#    sampleName  = "ttbarPowheg_cc",
-#    ntuples     = ntuplesPath+"/*/*_ttbarDileptonPlustauCcbar_fromDilepton_ttbbPowheg.root",
-#    categories  = ttbar_cc_categories,
-#    selections  = None
-#)
+dataset.addSample(
+    sampleName  = "ttbarPowheg_cc",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonPlustauCcbar_fromDilepton_ttbbPowheg.root",
+    categories  = ttbar_cc_categories,
+    selections  = None
+)
+dataset.addSample(
+    sampleName  = "ttbar_categoriesttbarPowheg_cc",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonPlustauCcbar_fromDilepton_ttbbPowheg.root",
+    categories  = ttbar_categories,
+    selections  = None
+)
 
 #ttbar_lf samples
-for i in range(5):
-    dataset.addSample(
-        sampleName  = "ttbar_lf"+str(i),
-        ntuples     = ntuplesPath+"/*/*_ttbarDileptonPlustauOther_fromDilepton_PSweights_"+str(i)+".root",
-        categories  = ttbar_lf_categories,
-        selections  = None
-    )
+#for i in range(5):
+#    dataset.addSample(
+#        sampleName  = "ttbar_lf"+str(i),
+#        ntuples     = ntuplesPath+"/*/*_ttbarDileptonPlustauOther_fromDilepton_PSweights_"+str(i)+".root",
+#        categories  = ttbar_lf_categories,
+#        selections  = None
+#    )
 
-#dataset.addSample(
-#    sampleName  = "ttbarPowheg_lf",
-#    ntuples     = ntuplesPath+"/*/*_ttbarDileptonPlustauOther_fromDilepton_ttbbPowheg.root",
-#    categories  = ttbar_lf_categories,
-#    selections  = None
-#)
+dataset.addSample(
+    sampleName  = "ttbarPowheg_lf",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonPlustauOther_fromDilepton_ttbbPowheg.root",
+    categories  = ttbar_lf_categories,
+    selections  = None
+)
+dataset.addSample(
+    sampleName  = "ttbar_categoriesttbarPowheg_lf",
+    ntuples     = ntuplesPath+"/*/*_ttbarDileptonPlustauOther_fromDilepton_ttbbPowheg.root",
+    categories  = ttbar_categories,
+    selections  = None
+)
+
 
 
 # initialize variable list
