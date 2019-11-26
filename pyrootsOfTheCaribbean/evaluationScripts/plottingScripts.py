@@ -245,6 +245,9 @@ class plotOutputNodes:
         self.printROCScore = printROC
         self.privateWork = privateWork
 
+        f = ROOT.TFile(self.plotdir + "/Discriminator.root", "RECREATE")
+        f.cd()
+
         # generate one plot per output node
         for i, node_cls in enumerate(self.event_classes):
             # get output values of this node
@@ -366,6 +369,9 @@ class plotOutputNodes:
             out_path = self.plotdir + "/outputNode_{}.pdf".format(node_cls)
             setup.saveCanvas(canvas, out_path)
 
+        f.cd()
+        f.Write()
+        f.Close()
         # add the histograms together
         workdir = os.path.dirname(self.plotdir[:-1])
         cmd = "pdfunite "+str(self.plotdir)+"/outputNode_*.pdf "+str(workdir)+"/outputNodes.pdf"
@@ -744,10 +750,11 @@ class plotEventYields:
 
 
 class plotBinaryOutput:
-    def __init__(self, data, test_predictions, train_predictions, nbins, bin_range, event_category, plotdir, logscale = False, sigScale = -1):
+    def __init__(self, data, test_predictions, train_predictions, full_predictions, nbins, bin_range, event_category, plotdir, logscale = False, sigScale = -1):
         self.data               = data
         self.test_predictions   = test_predictions
         self.train_predictions  = train_predictions
+        self.full_predictions   = full_predictions
         self.nbins              = nbins
         self.bin_range          = bin_range
         self.event_category     = event_category
@@ -762,7 +769,6 @@ class plotBinaryOutput:
         self.printROCScore = printROC
         self.privateWork = privateWork
 
-
         if self.printROCScore:
             roc = roc_auc_score(self.data.get_test_labels(), self.test_predictions)
             print("ROC: {}".format(roc))
@@ -775,11 +781,22 @@ class plotBinaryOutput:
         sig_weights =[ self.data.get_lumi_weights()[k] for k in range(len(self.test_predictions)) \
             if self.data.get_test_labels()[k] == 1]
 
+        sig_values_full = [ self.full_predictions[k] for k in range(len(self.full_predictions)) \
+            if self.data.get_labels()[k] == 1 ]
+        sig_weights_full =[ self.data.get_full_lumi_weights()[k] for k in range(len(self.full_predictions)) \
+            if self.data.get_labels()[k] == 1]
 
-        sig_hist = ROOT.TH1F("sgn", "Signal distribution; binary DNN output", 20,-1,1)
+        sig_hist_full = ROOT.TH1F("sgn_full", "Signal distribution; binary DNN output", 20,-1,1)
+        for i in range(len(sig_values_full)):
+            sig_hist_full.Fill(sig_values_full[i],sig_weights_full[i])
+
+        sig_hist_full_noweights = ROOT.TH1F("sgn_full_noweights", "Signal distribution; binary DNN output", 20,-1,1)
+        for i in range(len(sig_values_full)):
+            sig_hist_full_noweights.Fill(sig_values_full[i])
+
+        sig_hist_noweights = ROOT.TH1F("sgn_test_noweights", "Signal distribution; binary DNN output", 20,-1,1)
         for i in range(len(sig_values)):
-            sig_hist.Fill(sig_values[i],sig_weights[i])
-
+            sig_hist_noweights.Fill(sig_values[i])
 
         sig_hist = setup.setupHistogram(
             values      = sig_values,
@@ -787,7 +804,7 @@ class plotBinaryOutput:
             nbins       = self.nbins,
             bin_range   = self.bin_range,
             color       = ROOT.kCyan,
-            xtitle      = "signal",
+            xtitle      = "signal_test",
             ytitle      = setup.GetyTitle(self.privateWork),
             filled      = False)
         sig_hist.SetLineWidth(3)
@@ -797,9 +814,22 @@ class plotBinaryOutput:
         bkg_weights =[ self.data.get_lumi_weights()[k] for k in range(len(self.test_predictions)) \
             if not self.data.get_test_labels()[k] == 1]
 
-        bkg_hist = ROOT.TH1F("bkg", "Background distribution; binary DNN output", 20, -1,1)
+        bkg_values_full = [ self.full_predictions[k] for k in range(len(self.full_predictions)) \
+            if not self.data.get_labels()[k] == 1 ]
+        bkg_weights_full =[ self.data.get_full_lumi_weights()[k] for k in range(len(self.full_predictions)) \
+            if not self.data.get_labels()[k] == 1]
+
+        bkg_hist_full = ROOT.TH1F("bkg_full", "Background distribution; binary DNN output", 20,-1,1)
+        for i in range(len(bkg_values_full)):
+            bkg_hist_full.Fill(bkg_values_full[i],bkg_weights_full[i])
+
+        bkg_hist_full_noweights = ROOT.TH1F("bkg_full_noweights", "Background distribution; binary DNN output", 20, -1,1)
+        for i in range(len(bkg_values_full)):
+            bkg_hist_full_noweights.Fill(bkg_values_full[i])
+
+        bkg_hist_noweights = ROOT.TH1F("bkg_test_noweights", "Background distribution; binary DNN output", 20,-1,1)
         for i in range(len(bkg_values)):
-            bkg_hist.Fill(bkg_values[i],bkg_weights[i])
+            bkg_hist_noweights.Fill(bkg_values[i])
 
         bkg_hist = setup.setupHistogram(
             values      = bkg_values,
@@ -807,7 +837,7 @@ class plotBinaryOutput:
             nbins       = self.nbins,
             bin_range   = self.bin_range,
             color       = ROOT.kOrange,
-            xtitle      = "background",
+            xtitle      = "background_test",
             ytitle      = setup.GetyTitle(self.privateWork),
             filled      = True)
 
@@ -823,6 +853,12 @@ class plotBinaryOutput:
         if privateWork:
             sig_hist.Scale(1./sig_hist.Integral())
             bkg_hist.Scale(1./bkg_hist.Integral())
+            sig_hist_full.Scale(1./sig_hist_full.Integral())
+            bkg_hist_full.Scale(1./bkg_hist_full.Integral())
+            sig_hist_full_noweights.Scale(1./sig_hist_full_noweights.Integral())
+            bkg_hist_full_noweights.Scale(1./bkg_hist_full_noweights.Integral())
+            sig_hist_noweights.Scale(1./sig_hist_noweights.Integral())
+            bkg_hist_noweights.Scale(1./bkg_hist_noweights.Integral())
 
         plotOptions = {
             "ratio":      ratio,

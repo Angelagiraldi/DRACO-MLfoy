@@ -45,6 +45,9 @@ class Sample:
         # add lumi weight
         # adjust weights via 1/test_percentage such that yields in plots correspond to complete dataset
 
+        print(lumi)
+        print(self.normalization_weight)
+        print(self.test_percentage)
         df = df.assign(lumi_weight = lambda x: x.total_weight * lumi * self.normalization_weight / self.test_percentage)
 
         self.data = df
@@ -192,13 +195,17 @@ class DataFrame(object):
 
             sig_weight = sum(sig_df["train_weight"].values)
             bkg_weight = sum(bkg_df["train_weight"].values)
+            print(sig_weight)
+            print(bkg_weight)
 
-            signal_weight = sum( sig_df["train_weight"].values )
-            bkg_weight = sum( bkg_df["train_weight"].values )
-            sig_df["train_weight"] = sig_df["train_weight"]/(2*signal_weight)*df.shape[0]
+            sig_df["train_weight"] = sig_df["train_weight"]/(2*sig_weight)*df.shape[0]
             bkg_df["train_weight"] = bkg_df["train_weight"]/(2*bkg_weight)*df.shape[0]
+            print(sig_df["train_weight"])
+            print(bkg_df["train_weight"])
+
             #sig_df["class_label"] = "sig"
             #bkg_df["class_label"] = "bkg"
+
             sig_df["binaryTarget"] = 1.
             bkg_df["binaryTarget"] = float(self.bkg_target)
 
@@ -317,13 +324,24 @@ class DataFrame(object):
     def get_test_weights(self):
         return self.df_test["total_weight"].values
 
+    def get_full_test_weights(self):
+        return self.unsplit_df["total_weight"].values
+
     def get_lumi_weights(self):
         return self.df_test["lumi_weight"].values
+
+    def get_full_lumi_weights(self):
+        return self.unsplit_df["lumi_weight"].values
 
     def get_test_labels(self, as_categorical = True):
         if self.binary_classification: return self.df_test["binaryTarget"].values
         if as_categorical: return to_categorical( self.df_test["index_label"].values )
         else:              return self.df_test["index_label"].values
+
+    def get_labels(self, as_categorical = True):
+        if self.binary_classification: return self.unsplit_df["binaryTarget"].values
+        if as_categorical: return to_categorical( self.unsplit_df["index_label"].values )
+        else:              return self.unsplit_df["index_label"].values
 
     def get_class_flag(self, class_label):
         return pd.Series( [1 if c.replace("ttHbb","ttH").replace("ttZbb","ttZ")==class_label else 0 for c in self.df_test["class_label"].values], index = self.df_test.index ).values

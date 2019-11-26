@@ -22,6 +22,8 @@ import data_frame
 import Derivatives
 from Derivatives import Inputs, Outputs, Derivatives
 
+
+
 import keras
 import keras.optimizers as optimizers
 import keras.models as models
@@ -29,6 +31,10 @@ import keras.layers as layer
 from keras import backend as K
 import pandas as pd
 
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Activation
+from keras.optimizers import Adam, SGD
+from keras.utils import np_utils
 
 
 # Limit gpu usage
@@ -104,7 +110,7 @@ class DNN():
             category_label     = None,
             norm_variables     = True,
             train_epochs       = 500,
-            test_percentage    = 0.2,
+            test_percentage    = 0.20,
             eval_metrics       = None,
             shuffle_seed       = None,
             balanceSamples     = False,
@@ -254,19 +260,22 @@ class DNN():
 
 
 
-    def predict_event_query(self, query):
-        events = self.data.get_full_df().query( query )
-        print(str(events.shape[0]) + " events matched the query '"+str(query)+"'.")
+    def predict_event_query(self,):
+        events = self.data.get_full_df()
+        print(str(events.shape[0]) + " events.")
 
         for index, row in events.iterrows():
             print("========== DNN output ==========")
             print("Event: "+str(index))
-            print("-------------------->")
+            print(row)
+            print('-------------------->')
+            print(row.values)
+            print('-------------------->')
             output = self.model.predict( np.array([list(row.values)]) )[0]
             print("output:" + str(output))
 
-            for i, node in enumerate(self.event_classes):
-                print(str(node)+" node: "+str(output[i]))
+            #for i, node in enumerate(self.event_classes):
+            #    print(str(node)+" node: "+str(output[i]))
             print("-------------------->")
 
 
@@ -283,7 +292,6 @@ class DNN():
         if activation_function == "leakyrelu":
             activation_function = "linear"
         l2_regularization_beta      = self.architecture["L2_Norm"]
-        l1_regularization_beta      = self.architecture["L1_Norm"]
         output_activation           = self.architecture["output_activation"]
 
         # define input layer
@@ -472,6 +480,7 @@ class DNN():
         # save predicitons
         self.model_prediction_vector = self.model.predict(self.data.get_test_data (as_matrix = True))
         self.model_train_prediction  = self.model.predict(self.data.get_train_data(as_matrix = True))
+        self.model_prediction_full = self.model.predict(self.data.get_full_df())
 
         #figure out ranges
         self.get_ranges()
@@ -493,14 +502,102 @@ class DNN():
             for im, metric in enumerate(self.eval_metrics):
                 print("model test {}: {}".format(metric, self.model_eval[im+1]))
 
+    def model_to_optimize(self, train_params):
+        number_of_input_neurons =  self.data.get_train_data(as_matrix = True).shape[1]
+        print(number_of_input_neurons)
 
-    def get_data(self):
+        #Model providing function:
+        #Create Keras model with double curly brackets dropped-in as needed.
+        model = Sequential()
 
-        x_train_opt = self.data.get_train_data(as_matrix = True)
-        y_train_opt = self.data.get_train_labels()
-        print(y_train_opt.shape)
-        x_test_opt = self.data.get_test_data(as_matrix = True)
-        t_test_opt = self.data.get_test_labels()
+        model.add(Dense(units=int(train_params['layer_size_1']), activation='relu', kernel_regularizer=keras.regularizers.l2(train_params['l2_regularizer']),
+                        input_shape=(number_of_input_neurons,)))
+        model.add(Dropout(train_params['dropout']))
+
+        model.add(Dense(units=int(train_params['layer_size_2']), kernel_regularizer=keras.regularizers.l2(train_params['l2_regularizer']),
+                        activation='relu',))
+        model.add(Dropout(train_params['dropout']))
+
+        if train_params['four_layer']['include']:
+            model.add(Dense(units=int(train_params['four_layer']['layer_size_4']), kernel_regularizer=keras.regularizers.l2(train_params['l2_regularizer']),
+                            activation='relu',))
+            model.add(Dropout(train_params['dropout']))
+
+        model.add(Dense(self.data.n_output_neurons, kernel_regularizer=keras.regularizers.l2(train_params['l2_regularizer'])))
+
+        if self.data.binary_classification :
+            if 0 in self.data.get_train_labels():
+                loss = 'binary_crossentropy'
+                model.add(Activation('sigmoid'))
+            else:
+                loss = 'squared_hinge'
+                model.add(Activation('tanh'))
+        else:
+            model.add(Activation('softmax'))
+            loss = 'categorical_crossentropy'
+
+        if train_params['optimizer']['name'] == 'adam':
+            opt = keras.optimizers.Adam(lr = train_params['optimizer']['learning_rate'])
+        elif train_params['optimizer']['name'] == 'sgd':
+            opt = keras.optimizers.SGD(lr = train_params['optimizer']['learning_rate'])
+        elif train_params['optimizer']['name'] == 'RMSprop':
+            opt = keras.optimizers.RMSprop(lr = train_params['optimizer']['learning_rate'])
+        elif train_params['optimizer']['name'] == 'Adagrad':
+            opt = keras.optimizers.Adagrad(lr = train_params['optimizer']['learning_rate'])
+        elif train_params['optimizer']['name'] == 'Adadelta':
+            opt = keras.optimizers.Adadelta(lr = train_params['optimizer']['learning_rate'])
+        elif train_params['optimizer']['name'] == 'Adamax':
+            opt = keras.optimizers.Adamax(lr = train_params['optimizer']['learning_rate'])
+        else:
+            opt = keras.optimizers.Nadam(lr = train_params['optimizer']['learning_rate'])
+
+        # add early stopping if activated
+        callbacks = None
+        callbacks = [EarlyStopping(
+            monitor         = "loss",
+            value           = 0.02,
+            min_epochs      = 50,
+            stopping_epochs = 100,
+            verbose         = 1)]
+        # compile the model
+        model.compile(
+            loss        =   loss,
+            metrics     =   ['accuracy'],
+            optimizer   =   opt)
+
+        # train main net
+        model.fit(
+            x                   = self.data.get_train_data(as_matrix = True),
+            y                   = self.data.get_train_labels(),
+            batch_size          = int(train_params['batch_size']),
+            epochs              = 5,
+            shuffle             = True,
+            validation_split    = 0.25,
+            sample_weight       = self.data.get_train_weights())
+
+        return model
+
+    def roc_model_to_optimize(self, model):
+        from sklearn.metrics import roc_auc_score
+        model_prediction_vector = model.predict(self.data.get_test_data (as_matrix = True) )
+        roc_auc_score = roc_auc_score(self.data.get_test_labels(), model_prediction_vector)
+        return roc_auc_score
+
+    def evaluate_model_to_optimize(self, model):
+        test_accuracy_to_optimize = model.evaluate(self.data.get_test_data(as_matrix = True), self.data.get_test_labels())
+        return test_accuracy_to_optimize
+
+    def hyperopt_fcn(self,params):
+          from hyperopt import  STATUS_OK
+          model = self.model_to_optimize(params)
+          test_acc = self.evaluate_model_to_optimize(model)
+          roc_auc_score = self.roc_model_to_optimize(model)
+          print("roc_auc_score")
+          print(roc_auc_score)
+          K.clear_session()
+
+          return {'loss': -roc_auc_score,  'status': STATUS_OK}
+
 
     def get_ranges(self):
         if not self.data.binary_classification:
@@ -846,9 +943,9 @@ class DNN():
             logscale            = log,
             sigScale            = sigScale)
 
-        bkg_hist, sig_hist = plotDiscrs.plot(ratio = False, printROC = printROC, privateWork = privateWork)
-        print("ASIMOV: mu=0: sigma (-+): ", self.binned_likelihood(bkg_hist, sig_hist, 0))
-        print("ASIMOV: mu=1: sigma (-+): ", self.binned_likelihood(bkg_hist, sig_hist, 1))
+        #bkg_hist, sig_hist = plotDiscrs.plot(ratio = False, printROC = printROC, privateWork = privateWork)
+        #print("ASIMOV: mu=0: sigma (-+): ", self.binned_likelihood(bkg_hist, sig_hist, 0))
+        #print("ASIMOV: mu=1: sigma (-+): ", self.binned_likelihood(bkg_hist, sig_hist, 1))
 
     def plot_confusionMatrix(self, norm_matrix = True, privateWork = False, printROC = False):
         ''' plot confusion matrix '''
@@ -907,6 +1004,7 @@ class DNN():
             data                = self.data,
             test_predictions    = self.model_prediction_vector,
             train_predictions   = self.model_train_prediction,
+            full_predictions     = self.model_prediction_full,
             nbins               = nbins,
             bin_range           = bin_range,
             event_category      = self.category_label,
@@ -915,8 +1013,8 @@ class DNN():
             sigScale            = sigScale)
 
         bkg_hist, sig_hist = binaryOutput.plot(ratio = False, printROC = printROC, privateWork = privateWork, name = name)
-        print("ASIMOV: mu=0: sigma (-+): ", self.binned_likelihood(bkg_hist, sig_hist, 0))
-        print("ASIMOV: mu=1: sigma (-+): ", self.binned_likelihood(bkg_hist, sig_hist, 1))
+        #print("ASIMOV: mu=0: sigma (-+): ", self.binned_likelihood(bkg_hist, sig_hist, 0))
+        #print("ASIMOV: mu=1: sigma (-+): ", self.binned_likelihood(bkg_hist, sig_hist, 1))
 
     def calc_LL(self,n_obs, n_exp):
         if n_obs > 0 and n_exp >= 0:
