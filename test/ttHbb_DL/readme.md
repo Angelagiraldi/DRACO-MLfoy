@@ -11,22 +11,32 @@
 
 # Preprocessing Samples
 ## Adjust settings in `preprocessing_ttHbb_DL_${YEAR}.py`
+
+-tag associated to a Data set (corresponds to year: 2016, 2017, 2018)
+```bash
+YEAR=2018
+```
+
 - change/add event categories (default event categories are `ttH_categories`, `ttbar_bb_categories`,`ttbar_b_categories`,`ttbar_2b_categories`,`ttcc_categories`,`ttlf_categories`; `ttbb_categories` is for ttbb+tt2b+ttb and `binary_bkg_categories` for ttbb+tt2b+ttb+ttcc+ttlf)
 ```python
 	EVENTCATEGORYNAME=root2pandas.EventCategories()
 ```
+
 - change/add categories of event categories (`SELECTION` can be `None`)
 ```python
    EVENTCATEGORYNAME.addCategory(CATEGORYNAME, selection = SELECTION)
  ```
+
 - `ntuplesPath` as absolute path to ntuples
+
 - change/add samples of the dataset used with
 ```python
 	dataset.addSample(SampleName  = SAMPLENAME,
     			ntuples     = PATHTONTUPLES,
     			categories  = EVENTCATEGORYNAME,
-    			selections  = SELECTION`
+    			selections  = SELECTION)
 ```
+
 - change `additional_variables` for variables needed to preprocess, that are not defined in the selection and not needed for training
 
 
@@ -37,17 +47,25 @@ python preprocessing_ttHbb_DL_${YEAR}.py
 ```
 or use the following for options
 - `-o DIR` to change the name of the ouput directory, can be either a string or absolute path (default is `InputFeatures`)
-- `-v FILE` to change the variable Selection, if the file is in `/variable_sets/` the name is sufficient, else the absolute path is needed (default is `example_variables`)
-- `-t STR` to select the tree corresponding to the right category  (default is `liteTreeTTH_step7_cate8`)
+- `-v FILE` to change the variable Selection, if the file is in `/variable_sets/` the name is sufficient, else the absolute path is needed (default is `variables_ttHbb_DL_inputvalidation_${YEAR}`)
+- `-t STR` to select the tree (or trees for ge4jge3t) corresponding to the right category  (remember to ALWAYS define it, by default is empty)
 - `-e INT` to change the maximal number of entries for each batch to restrict memory usage (default is `100000`)
 - `-n STR` to change the naming of the output file
 
 ```bash
-python preprocessing.py -o DIR -v FILE -e INT -m -n STR
+python preprocessing.py -o DIR -v FILE -e INT -n STR
+```
+An example is:
+```bash
+python preprocessing.py -o InputFeatures/${YEAR}/${category}  -t liteTreeTTH_step7_${category}
 ```
 
 ------------------------------------------------------------------------------------------
+# Run first-order derivatives for the Taylor Expansion of the ANNs outputs
 
+To compute the first-order derivatives for the DNN Taylor expansion add the funciton "dnn.get_gradients(options.isBinary())" in `train_template.py`.
+Whenever an architecture in `net_configs.py` is added or its name is changed, remember to  change the corresponding TensorFlow architecture in `net_configs_tensorflow.py`.
+The TensorFlow architecture has to have the same name as the keras one with the additional `_tensorflow` at the end.
 
 ## Usage
 To execute with default options use
@@ -57,7 +75,7 @@ python train_template.py
 or use the following options
 1. Category used for training
     - `-c STR` name of the category `(ge/le)[nJets]j_(ge/le)[nTags]t`
-    (default is `4j_ge3t`)
+    (default is `ge4j_ge3t`)
 
 2. Sample Options
     - `-o DIR` to change the name of the output directory (absolute path or path relative to `workdir`)
