@@ -32,15 +32,30 @@ if __name__ == '__main__':
 
     # during preprocessing half of the ttH sample is discarded (Even/Odd splitting),
     # thus, the event yield has to be multiplied by two. This is done with normalization_weight = 2.
-    input_samples.addSample(options.getDefaultName("ttH"), label = "ttH", normalization_weight = options.getNomWeight(), total_weight_expr='x.weight')
 
-    input_samples.addSample(options.getDefaultName("ttbb"), label = "ttbb" , normalization_weight = options.getNomWeight(), total_weight_expr='x.weight')
-    input_samples.addSample(options.getDefaultName("tt2b"), label = "tt2b" , normalization_weight = options.getNomWeight(), total_weight_expr='x.weight')
-    input_samples.addSample(options.getDefaultName("ttb"), label = "ttb"  , normalization_weight = options.getNomWeight(), total_weight_expr='x.weight')
-    #input_samples.addSample(options.getDefaultName("ttbar"), label = "ttbar"  , normalization_weight = options.getNomWeight(), total_weight_expr='x.weight')
+    df.xsec_ttbarH125toBBbar_2L = 0.5071 * 0.58240 * 0.10608
+    df.sum_weights_ttbarH125toBBbar_2L = 39288.133881240494 + 39135.2659744472 + 38058.83373687076 + 37464.635827452155 + 32688.26072449913 + 32556.61567502508 + 33011.21865091314 + \
+                                         37148.99907820718 + 37028.035861583325 + 38002.175838184354 + 39289.00812472586 + 38216.78275522937 + 38665.486247293 + 38115.688442639206 +38197.198583188656
+    input_samples.addSample(options.getDefaultName("ttH"), label = "ttH", normalization_weight = options.getNomWeight(), total_weight_expr=' x.weight ')
+    #input_samples.addSample(options.getDefaultName("ttH"), label = "ttH", normalization_weight = options.getNomWeight(), total_weight_expr=' xsec_ttbarH125toBBbar_2L * x.weight / sum_weights_ttbarH125toBBbar_2L')
 
-    input_samples.addSample(options.getDefaultName("ttcc"), label = "ttcc" , normalization_weight = options.getNomWeight(), total_weight_expr='x.weight')
-    input_samples.addSample(options.getDefaultName("ttlf"), label = "ttlf" , normalization_weight = options.getNomWeight(), total_weight_expr='x.weight')
+    # input_samples.addSample(options.getDefaultName("binary_bkg"), label = "binary_bkg" , normalization_weight = options.getNomWeight(), total_weight_expr='x.weight')
+
+    df.xsec_ttbar_DL = 831.76 * 0.10608
+    df.xsec_ttbb_PowhegOpenLoops_4FS_DL = df.xsec_ttbar_DL * 0.020574086/0.51103793
+    df.sum_weights_Powheg_ext1 = 3073708205.723201
+    #input_samples.addSample(options.getDefaultName("ttbb"), label = "ttbb" , normalization_weight = options.getNomWeight(), total_weight_expr='xsec_ttbb_PowhegOpenLoops_4FS_DL * x.weight / sum_weights_Powheg_ext1')
+    #input_samples.addSample(options.getDefaultName("tt2b"), label = "tt2b" , normalization_weight = options.getNomWeight(), total_weight_expr='xsec_ttbb_PowhegOpenLoops_4FS_DL * x.weight / sum_weights_Powheg_ext1')
+    #input_samples.addSample(options.getDefaultName("ttb"), label = "ttb"  , normalization_weight = options.getNomWeight(), total_weight_expr='xsec_ttbb_PowhegOpenLoops_4FS_DL * x.weight / sum_weights_Powheg_ext1')
+
+    # input_samples.addSample(options.getDefaultName("ttbar"), label = "ttbar"  , normalization_weight = options.getNomWeight(), total_weight_expr='xsec_ttbb_PowhegOpenLoops_4FS_DL * x.weight / sum_weights_Powheg_ext1')
+    input_samples.addSample(options.getDefaultName("ttbar"), label = "ttbar"  , normalization_weight = options.getNomWeight(), total_weight_expr='x.weight')
+
+    df.sum_weights_PSweights = 487573200.27611256 + 487620525.0399089 + 487953818.4051517 + 480978050.0409142 + 480852734.6651834 + 498016562.91250074
+    # input_samples.addSample(options.getDefaultName("ttcc"), label = "ttcc" , normalization_weight = options.getNomWeight(), total_weight_expr=' xsec_ttbar_DL * x.weight / sum_weights_PSweights')
+    # input_samples.addSample(options.getDefaultName("ttlf"), label = "ttlf" , normalization_weight = options.getNomWeight(), total_weight_expr=' xsec_ttbar_DL  * x.weight / sum_weights_PSweights')
+    input_samples.addSample(options.getDefaultName("ttcc"), label = "ttcc" , normalization_weight = options.getNomWeight(), total_weight_expr=' x.weight ')
+    input_samples.addSample(options.getDefaultName("ttlf"), label = "ttlf" , normalization_weight = options.getNomWeight(), total_weight_expr=' x.weight ')
 
     if options.isBinary():
        input_samples.addBinaryLabel(options.getSignal(), options.getBinaryBkgTarget())
@@ -113,20 +128,13 @@ if __name__ == '__main__':
         #dnn.variables_configuration()
 
         # save and print variable ranking according to the input layer weights
-        #dnn.get_input_weights()
+        dnn.get_input_weights()
 
         # save and print variable ranking according to all layer weights
-        #dnn.get_weights()
-
-        #dnn.get_gradients(options.isBinary())
-        dnn.predict_event_query()
-
+        dnn.get_weights()
 
         # plotting
         if options.doPlots():
-            # plot the evaluation metrics
-            print("plot_metrics")
-            #dnn.plot_metrics(privateWork = options.isPrivateWork())
 
             if options.isBinary():
                 # plot output node
@@ -169,10 +177,17 @@ if __name__ == '__main__':
                     sigScale            = options.getSignalScale())
 
                 # plot closure test
-                dnn.plot_closureTest(
-                    log                 = options.doLogPlots(),
-                    signal_class        = options.getSignal(),
-                    privateWork         = options.isPrivateWork())
+                #dnn.plot_closureTest(
+                    # log                 = options.doLogPlots(),
+                    # signal_class        = options.getSignal(),
+                    # privateWork         = options.isPrivateWork())
+            # plot the evaluation metrics
+            print("plot_metrics")
+            #dnn.plot_metrics(privateWork = options.isPrivateWork())
+
+            dnn.get_gradients(options.isBinary())
+            #dnn.predict_event_query()
+
     else:
         import hyperopt as hp
         from hyperopt import fmin, STATUS_OK, tpe, space_eval, Trials
@@ -232,9 +247,9 @@ if __name__ == '__main__':
         }
 
         trials = Trials()
-        best = fmin(dnn.hyperopt_fcn, search_space, algo=tpe.suggest, max_evals=20, trials=trials)
+        best = fmin(dnn.hyperopt_fcn, search_space, algo=tpe.suggest, max_evals=25, trials=trials)
         params = space_eval(search_space, best)
-        f = open(options.getOutputDir()+"/.txt","w")
+        f = open(options.getOutputDir()+"/hyperparamsOptimizations.txt","w")
         f.write( str(params) )
         f.close()
         print(params)

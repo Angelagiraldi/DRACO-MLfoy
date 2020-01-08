@@ -6,6 +6,8 @@ from keras.utils import to_categorical
 from sklearn.utils import shuffle
 from sklearn.decomposition import PCA
 
+global xsec_ttbb_PowhegOpenLoops_4FS_DL, xsec_ttbarH125toBBbar_2L, xsec_ttbar_DL, sum_weights_ttbarH125toBBbar_2L, sum_weights_ttbb_Powheg
+
 class Sample:
     def __init__(self, path, label, normalization_weight = 1., train_weight = 1., test_percentage = 0.2, total_weight_expr='x.Weight_XS * x.Weight_CSV * x.Weight_GEN_nom'):
         self.path = path
@@ -34,11 +36,14 @@ class Sample:
         print("number of events after selections:  "+str(df.shape[0]))
         self.nevents = df.shape[0]
 
+
         # add event weight
         df = df.assign(total_weight = lambda x: eval(self.total_weight_expr))
 
         # assign train weight
         weight_sum = sum(df["total_weight"].values)
+
+        print("sum of total weights: {}".format(sum(df["total_weight"].values)))
         df = df.assign(train_weight = lambda x: x.total_weight/weight_sum*self.train_weight)
         print("sum of train weights: {}".format(sum(df["train_weight"].values)))
 
@@ -164,8 +169,11 @@ class DataFrame(object):
 
             # add flag for ttH to dataframe
             df["is_ttH"] = pd.Series( [1 if (c=="ttHbb" or c=="ttH") else 0 for c in df["class_label"].values], index = df.index )
+            df["is_ttbb"] = pd.Series( [1 if c=="ttbb" else 0 for c in df["class_label"].values], index = df.index )
+            df["is_ttcc"] = pd.Series( [1 if c=="ttcc" else 0 for c in df["class_label"].values], index = df.index )
+            df["is_ttlf"] = pd.Series( [1 if c=="ttlf" else 0 for c in df["class_label"].values], index = df.index )
 
-#            print(df["class_label"].values)
+            print(df["class_label"].values)
 
             # add index labelling to dataframe
             df["index_label"] = pd.Series( [self.class_translation[c.replace("ttHbb", "ttH").replace("ttZbb","ttZ")] for c in df["class_label"].values], index = df.index )
@@ -187,6 +195,16 @@ class DataFrame(object):
 
             self.classes = ["sig", "bkg"]
             self.index_classes = [self.class_translation[c] for c in self.classes]
+            print(df["class_label"].values)
+
+            # add flag for ttH to dataframe
+            df["is_ttH"] = pd.Series( [1 if (c=="ttHbb" or c=="ttH") else 0 for c in df["class_label"].values], index = df.index )
+            df["is_ttbb"] = pd.Series( [1 if c=="ttbb" else 0 for c in df["class_label"].values], index = df.index )
+            df["is_tt2b"] = pd.Series( [1 if c=="ttb" else 0 for c in df["class_label"].values], index = df.index )
+            df["is_ttb"] = pd.Series( [1 if c=="tt2b" else 0 for c in df["class_label"].values], index = df.index )
+            df["is_ttcc"] = pd.Series( [1 if c=="ttcc" else 0 for c in df["class_label"].values], index = df.index )
+            df["is_ttlf"] = pd.Series( [1 if c=="ttlf" else 0 for c in df["class_label"].values], index = df.index )
+            df["is_ttbar"] = pd.Series( [1 if c=="ttbar" else 0 for c in df["class_label"].values], index = df.index )
 
             df["index_label"] = pd.Series( [1 if c.replace("ttHbb","ttH").replace("ttZbb","ttZ") in input_samples.signal_classes else 0 for c in df["class_label"].values], index = df.index)
 
@@ -195,13 +213,12 @@ class DataFrame(object):
 
             sig_weight = sum(sig_df["train_weight"].values)
             bkg_weight = sum(bkg_df["train_weight"].values)
-            print(sig_weight)
-            print(bkg_weight)
 
             sig_df["train_weight"] = sig_df["train_weight"]/(2*sig_weight)*df.shape[0]
             bkg_df["train_weight"] = bkg_df["train_weight"]/(2*bkg_weight)*df.shape[0]
-            print(sig_df["train_weight"])
-            print(bkg_df["train_weight"])
+
+            print(sig_df["train_weight"].mean())
+            print(bkg_df["train_weight"].mean())
 
             #sig_df["class_label"] = "sig"
             #bkg_df["class_label"] = "bkg"
@@ -227,8 +244,11 @@ class DataFrame(object):
         norm_csv = pd.DataFrame(index=train_variables, columns=["mu", "std"])
         if norm_variables:
             for v in train_variables:
+                print(v)
                 norm_csv["mu"][v] = unnormed_df[v].mean()
                 norm_csv["std"][v] = unnormed_df[v].std()
+                print(norm_csv["mu"][v])
+                print(norm_csv["std"][v])
                 if norm_csv["std"][v] == 0.:
                     sys.exit("std deviation of variable {} is zero -- this cannot be used for training".format(v))
         else:
@@ -333,6 +353,9 @@ class DataFrame(object):
     def get_full_lumi_weights(self):
         return self.unsplit_df["lumi_weight"].values
 
+    def get_full_weights(self):
+        return self.unsplit_df["train_weight"].values
+
     def get_test_labels(self, as_categorical = True):
         if self.binary_classification: return self.df_test["binaryTarget"].values
         if as_categorical: return to_categorical( self.df_test["index_label"].values )
@@ -343,11 +366,32 @@ class DataFrame(object):
         if as_categorical: return to_categorical( self.unsplit_df["index_label"].values )
         else:              return self.unsplit_df["index_label"].values
 
+    def get_class_label(self):
+        return self.df_test["class_label"].values
+
     def get_class_flag(self, class_label):
         return pd.Series( [1 if c.replace("ttHbb","ttH").replace("ttZbb","ttZ")==class_label else 0 for c in self.df_test["class_label"].values], index = self.df_test.index ).values
 
     def get_ttH_flag(self):
         return self.df_test["is_ttH"].values
+
+    def get_ttbb_flag(self):
+        return self.df_test["is_ttbb"].values
+
+    def get_ttcc_flag(self):
+        return self.df_test["is_ttcc"].values
+
+    def get_ttlf_flag(self):
+        return self.df_test["is_ttlf"].values
+
+    def get_tt2b_flag(self):
+        return self.df_test["is_tt2b"].values
+
+    def get_ttb_flag(self):
+        return self.df_test["is_ttb"].values
+
+    def get_ttbar_flag(self):
+        return self.df_test["is_ttbar"].values
 
     # full sample ----------------------------------
     def get_full_df(self):

@@ -22,8 +22,6 @@ import data_frame
 import Derivatives
 from Derivatives import Inputs, Outputs, Derivatives
 
-
-
 import keras
 import keras.optimizers as optimizers
 import keras.models as models
@@ -36,14 +34,10 @@ from keras.layers import Dense, Dropout, Activation
 from keras.optimizers import Adam, SGD
 from keras.utils import np_utils
 
-
 # Limit gpu usage
 import tensorflow as tf
 
 import matplotlib.pyplot as plt
-
-global x_train_opt, y_train_opt, x_test_opt, y_test_opt
-
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
@@ -813,21 +807,14 @@ class DNN():
 
         # Normalize rows
         matrix = np.vstack([mean_abs_deriv[class_] for class_ in event_classes])
-        print()
         for i_class, class_ in enumerate(event_classes):
-            print(matrix[i_class, :])
-            print(np.sum(matrix[i_class, :]))
             matrix[i_class, :] = matrix[i_class, :] / np.sum(matrix[i_class, :])
-            print(matrix[i_class, :])
-
 
         # Make plot
         variables = self.train_variables
         plt.figure(0, figsize=(len(variables), len(event_classes)))
         axis = plt.gca()
 
-        print(matrix.shape[0])
-        print(matrix.shape[1])
 
         for i in range(matrix.shape[0]):
             for j in range(matrix.shape[1]):
@@ -899,6 +886,7 @@ class DNN():
 
             # save
             out_path = self.save_path + "/model_history_"+str(metric)+".pdf"
+            print(out_path)
             plt.savefig(out_path)
             print("saved plot of "+str(metric)+" at "+str(out_path))
 

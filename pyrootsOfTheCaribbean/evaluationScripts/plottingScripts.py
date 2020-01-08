@@ -785,10 +785,16 @@ class plotBinaryOutput:
             if self.data.get_labels()[k] == 1 ]
         sig_weights_full =[ self.data.get_full_lumi_weights()[k] for k in range(len(self.full_predictions)) \
             if self.data.get_labels()[k] == 1]
+        sig_weights_weights =[ self.data.get_full_weights()[k] for k in range(len(self.full_predictions)) \
+            if self.data.get_labels()[k] == 1]
 
         sig_hist_full = ROOT.TH1F("sgn_full", "Signal distribution; binary DNN output", 20,-1,1)
         for i in range(len(sig_values_full)):
             sig_hist_full.Fill(sig_values_full[i],sig_weights_full[i])
+
+        sig_hist_full_weights = ROOT.TH1F("sgn_full_weights", "Signal distribution; binary DNN output", 20,-1,1)
+        for i in range(len(sig_values_full)):
+            sig_hist_full.Fill(sig_values_full[i],sig_weights_weights[i])
 
         sig_hist_full_noweights = ROOT.TH1F("sgn_full_noweights", "Signal distribution; binary DNN output", 20,-1,1)
         for i in range(len(sig_values_full)):
@@ -814,22 +820,134 @@ class plotBinaryOutput:
         bkg_weights =[ self.data.get_lumi_weights()[k] for k in range(len(self.test_predictions)) \
             if not self.data.get_test_labels()[k] == 1]
 
-        bkg_values_full = [ self.full_predictions[k] for k in range(len(self.full_predictions)) \
-            if not self.data.get_labels()[k] == 1 ]
-        bkg_weights_full =[ self.data.get_full_lumi_weights()[k] for k in range(len(self.full_predictions)) \
-            if not self.data.get_labels()[k] == 1]
+        # bkg_values_cc = [ self.test_predictions[k] for k in range(len(self.test_predictions)) \
+        #     if self.data.get_class_label()[k] == "ttcc" ]
+        # bkg_weights_cc =[ self.data.get_lumi_weights()[k] for k in range(len(self.test_predictions)) \
+        #     if self.data.get_class_label()[k] == "ttcc"]
+        #
+        # histogram_cc = setup.setupHistogram(
+        #     values    = bkg_values_cc,
+        #     weights   = bkg_weights_cc,
+        #     nbins     = self.nbins,
+        #     bin_range = self.bin_range,
+        #     color     = setup.GetPlotColor("ttcc"),
+        #     xtitle    = "ttcc",
+        #     ytitle    = setup.GetyTitle(self.privateWork),
+        #     filled    = True)
+        #
+        # bkg_values_lf = [ self.test_predictions[k] for k in range(len(self.test_predictions)) \
+        #     if self.data.get_class_label()[k] == "ttlf"]
+        # bkg_weights_lf =[ self.data.get_lumi_weights()[k] for k in range(len(self.test_predictions)) \
+        #     if self.data.get_class_label()[k] == "ttlf"]
+        #
+        # histogram_lf = setup.setupHistogram(
+        #     values    = bkg_values_lf,
+        #     weights   = bkg_weights_lf,
+        #     nbins     = self.nbins,
+        #     bin_range = self.bin_range,
+        #     color     = setup.GetPlotColor("ttlf"),
+        #     xtitle    = "ttlf",
+        #     ytitle    = setup.GetyTitle(self.privateWork),
+        #     filled    = True)
+        #
+        # bkg_values_bb = [ self.test_predictions[k] for k in range(len(self.test_predictions)) \
+        #     if self.data.get_class_label()[k] == "ttbb"]
+        # bkg_weights_bb =[ self.data.get_lumi_weights()[k] for k in range(len(self.test_predictions)) \
+        #     if self.data.get_class_label()[k] == "ttbb" ]
+        #
+        # histogram_bb = setup.setupHistogram(
+        #     values    = bkg_values_bb,
+        #     weights   = bkg_weights_bb,
+        #     nbins     = self.nbins,
+        #     bin_range = self.bin_range,
+        #     color     = setup.GetPlotColor("ttbb"),
+        #     xtitle    = "ttbb",
+        #     ytitle    = setup.GetyTitle(self.privateWork),
+        #     filled    = True)
+        #
+        # bkg_values_b = [ self.test_predictions[k] for k in range(len(self.test_predictions)) \
+        #     if self.data.get_class_label()[k] == "ttb"]
+        # bkg_weights_b =[ self.data.get_lumi_weights()[k] for k in range(len(self.test_predictions)) \
+        #     if self.data.get_class_label()[k] == "ttbb" ]
+        #
+        # histogram_b = setup.setupHistogram(
+        #     values    = bkg_values_b,
+        #     weights   = bkg_weights_b,
+        #     nbins     = self.nbins,
+        #     bin_range = self.bin_range,
+        #     color     = setup.GetPlotColor("ttb"),
+        #     xtitle    = "ttb",
+        #     ytitle    = setup.GetyTitle(self.privateWork),
+        #     filled    = True)
+        #
+        # bkg_values_2b = [ self.test_predictions[k] for k in range(len(self.test_predictions)) \
+        #     if self.data.get_class_label()[k] == "tt2b"]
+        # bkg_weights_2b =[ self.data.get_lumi_weights()[k] for k in range(len(self.test_predictions)) \
+        #     if self.data.get_class_label()[k] == "tt2b" ]
+        #
+        # histogram_2b = setup.setupHistogram(
+        #     values    = bkg_values_2b,
+        #     weights   = bkg_weights_2b,
+        #     nbins     = self.nbins,
+        #     bin_range = self.bin_range,
+        #     color     = setup.GetPlotColor("tt2b"),
+        #     xtitle    = "tt2b",
+        #     ytitle    = setup.GetyTitle(self.privateWork),
+        #     filled    = True)
 
-        bkg_hist_full = ROOT.TH1F("bkg_full", "Background distribution; binary DNN output", 20,-1,1)
-        for i in range(len(bkg_values_full)):
-            bkg_hist_full.Fill(bkg_values_full[i],bkg_weights_full[i])
+        # bkg_values_ttbar = [ self.test_predictions[k] for k in range(len(self.test_predictions)) \
+        #     if self.data.get_class_label()[k] == "ttbar"]
+        # bkg_weights_ttbar =[ self.data.get_lumi_weights()[k] for k in range(len(self.test_predictions)) \
+        #     if self.data.get_class_label()[k] == "ttbar" ]
+        #
+        # histogram_ttbar = setup.setupHistogram(
+        #     values    = bkg_values_ttbar,
+        #     weights   = bkg_weights_ttbar,
+        #     nbins     = self.nbins,
+        #     bin_range = self.bin_range,
+        #     color     = setup.GetPlotColor("ttbar"),
+        #     xtitle    = "ttbar",
+        #     ytitle    = setup.GetyTitle(self.privateWork),
+        #     filled    = True)
+        #
+        # bkgHists = []
+        # bkgLabels = []
+        # bkgHists.append( histogram_bb )
+        # bkgLabels.append("ttbb")
+        # bkgHists.append( histogram_2b )
+        # bkgLabels.append("tt2b")
+        # bkgHists.append( histogram_b )
+        # bkgLabels.append("ttb")
+        # bkgHists.append( histogram_ttbar )
+        # bkgLabels.append("ttbar")
+        # bkgHists.append( histogram_cc )
+        # bkgLabels.append("ttcc")
+        # bkgHists.append( histogram_lf )
+        # bkgLabels.append("ttlf")
 
-        bkg_hist_full_noweights = ROOT.TH1F("bkg_full_noweights", "Background distribution; binary DNN output", 20, -1,1)
-        for i in range(len(bkg_values_full)):
-            bkg_hist_full_noweights.Fill(bkg_values_full[i])
 
-        bkg_hist_noweights = ROOT.TH1F("bkg_test_noweights", "Background distribution; binary DNN output", 20,-1,1)
-        for i in range(len(bkg_values)):
-            bkg_hist_noweights.Fill(bkg_values[i])
+        # bkg_values_full = [ self.full_predictions[k] for k in range(len(self.full_predictions)) \
+        #     if not self.data.get_labels()[k] == 1 ]
+        # bkg_weights_full =[ self.data.get_full_lumi_weights()[k] for k in range(len(self.full_predictions)) \
+        #     if not self.data.get_labels()[k] == 1]
+        # bkg_weights_weights =[ self.data.get_full_weights()[k] for k in range(len(self.full_predictions)) \
+        #     if not self.data.get_labels()[k] == 1]
+        #
+        # bkg_hist_full = ROOT.TH1F("bkg_full", "Background distribution; binary DNN output", 20,-1,1)
+        # for i in range(len(bkg_values_full)):
+        #     bkg_hist_full.Fill(bkg_values_full[i],bkg_weights_full[i])
+        #
+        # bkg_hist_full_weights = ROOT.TH1F("bkg_full_weights", "Background distribution; binary DNN output", 20,-1,1)
+        # for i in range(len(bkg_values_full)):
+        #     bkg_hist_full_weights.Fill(bkg_values_full[i],bkg_weights_weights[i])
+        #
+        # bkg_hist_full_noweights = ROOT.TH1F("bkg_full_noweights", "Background distribution; binary DNN output", 20, -1,1)
+        # for i in range(len(bkg_values_full)):
+        #     bkg_hist_full_noweights.Fill(bkg_values_full[i])
+        #
+        # bkg_hist_noweights = ROOT.TH1F("bkg_test_noweights", "Background distribution; binary DNN output", 20,-1,1)
+        # for i in range(len(bkg_values)):
+        #     bkg_hist_noweights.Fill(bkg_values[i])
 
         bkg_hist = setup.setupHistogram(
             values      = bkg_values,
@@ -853,12 +971,12 @@ class plotBinaryOutput:
         if privateWork:
             sig_hist.Scale(1./sig_hist.Integral())
             bkg_hist.Scale(1./bkg_hist.Integral())
-            sig_hist_full.Scale(1./sig_hist_full.Integral())
-            bkg_hist_full.Scale(1./bkg_hist_full.Integral())
-            sig_hist_full_noweights.Scale(1./sig_hist_full_noweights.Integral())
-            bkg_hist_full_noweights.Scale(1./bkg_hist_full_noweights.Integral())
-            sig_hist_noweights.Scale(1./sig_hist_noweights.Integral())
-            bkg_hist_noweights.Scale(1./bkg_hist_noweights.Integral())
+            # sig_hist_full.Scale(1./sig_hist_full.Integral())
+            # bkg_hist_full.Scale(1./bkg_hist_full.Integral())
+            # sig_hist_full_noweights.Scale(1./sig_hist_full_noweights.Integral())
+            # bkg_hist_full_noweights.Scale(1./bkg_hist_full_noweights.Integral())
+            # sig_hist_noweights.Scale(1./sig_hist_noweights.Integral())
+            # bkg_hist_noweights.Scale(1./bkg_hist_noweights.Integral())
 
         plotOptions = {
             "ratio":      ratio,
@@ -870,6 +988,10 @@ class plotBinaryOutput:
             sig_hist, bkg_hist, plotOptions,
             canvasName = name)
 
+        # canvas_detailed = setup.drawHistsOnCanvas(
+        #     sig_hist, bkgHists, plotOptions,
+        #     canvasName = name+"detailed")
+
         # setup legend
         legend = setup.getLegend()
 
@@ -877,7 +999,11 @@ class plotBinaryOutput:
         legend.AddEntry(sig_hist, "signal x {:4.0f}".format(scaleFactor), "L")
 
         # add background entries
-        legend.AddEntry(bkg_hist, "background", "F")
+        #legend.AddEntry(bkg_hist, "background", "F")
+        for i, h in enumerate(bkgHists):
+            legend.AddEntry(h, bkgLabels[i], "F")
+        # draw legend
+        legend.Draw("same")
 
         # draw legend
         legend.Draw("same")
@@ -885,18 +1011,23 @@ class plotBinaryOutput:
         # add ROC score if activated
         if self.printROCScore:
             setup.printROCScore(canvas, roc, plotOptions["ratio"])
+            # setup.printROCScore(canvas_detailed, roc, plotOptions["ratio"])
 
         # add lumi or private work label to plot
         if self.privateWork:
             setup.printPrivateWork(canvas, plotOptions["ratio"], nodePlot = True)
+            # setup.printPrivateWork(canvas_detailed, plotOptions["ratio"], nodePlot = True)
         else:
             setup.printLumi(canvas, ratio = plotOptions["ratio"])
 
         # add category label
         setup.printCategoryLabel(canvas, self.event_category, ratio = plotOptions["ratio"])
+        # setup.printCategoryLabel(canvas_detailed, self.event_category, ratio = plotOptions["ratio"])
 
         out_path = self.plotdir + "/binaryDiscriminator.pdf"
         setup.saveCanvas(canvas, out_path)
+        # out_path = self.plotdir + "/binaryDiscriminator_detailed.pdf"
+        # setup.saveCanvas(canvas_detailed, out_path)
 
         # returns = np.round_(hist2array(bkg_hist)).astype(int), np.round(hist2array(sig_hist_unscaled)).astype(int)
         # returns = np.round_(hist2array(bkg_hist)), np.round(hist2array(sig_hist_unscaled))
