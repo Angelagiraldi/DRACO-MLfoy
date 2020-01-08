@@ -9,10 +9,10 @@ sys.path.append(basedir)
 import root2pandas
 
 """
-USE: python preprocessing.py --outputdirectory=DIR --variableSelection=FILE --treeName=STR --maxentries=INT --MEM=BOOL
+USE: python preprocessing.py --outputdirectory=DIR --variableSelection=FILE --treeName=STR --maxentries=INT
 """
 usage="usage=%prog [options] \n"
-usage+="USE: python preprocessing.py --outputdirectory=DIR --variableselection=FILE --treeName=STR --maxentries=INT --MEM=BOOL --name=STR\n"
+usage+="USE: python preprocessing.py --outputdirectory=DIR --variableselection=FILE --treeName=STR --maxentries=INT  --name=STR\n"
 usage+="OR: python preprocessing.py -o DIR -v FILE -t STR-e INT -m BOOL -n STR"
 
 parser = optparse.OptionParser(usage=usage)
@@ -23,14 +23,11 @@ parser.add_option("-o", "--outputdirectory", dest="outputDir",default="InputFeat
 parser.add_option("-v", "--variableselection", dest="variableSelection",default="variables_ttHbb_DL_inputvalidation_2017",
         help="FILE for variables used to train DNNs", metavar="variableSelection")
 
-parser.add_option("-t", "--treeName",action='append', default=[],
+parser.add_option("-t", "--treeName",action='append', default=["liteTreeTTH_step7_cate8"],
         help="Name of the tree corresponding to the right category", metavar="treeName")
 
 parser.add_option("-e", "--maxentries", dest="maxEntries", default=100000,
         help="INT used for maximal number of entries for each batch (to restrict memory usage)", metavar="maxEntries")
-
-parser.add_option("-m", "--MEM", dest="MEM", action = "store_true", default=False,
-        help="BOOL to use MEM or not", metavar="MEM")
 
 parser.add_option("-n", "--name", dest="Name", default="dnn",
         help="STR of the output file name", metavar="Name")
@@ -61,7 +58,6 @@ dataset = root2pandas.Dataset(
 
   outputdir  = outputdir,
   naming     = options.Name,
-  addMEM     = options.MEM,
   maxEntries = options.maxEntries,
   tree = options.treeName,
   varName_Run = "runNumber",
