@@ -23,7 +23,7 @@ parser.add_option("-o", "--outputdirectory", dest="outputDir",default="InputFeat
 parser.add_option("-v", "--variableselection", dest="variableSelection",default="variables_ttHbb_DL_inputvalidation_2017",
         help="FILE for variables used to train DNNs", metavar="variableSelection")
 
-parser.add_option("-t", "--treeName",action='append', default=["liteTreeTTH_step7_cate7", "liteTreeTTH_step7_cate8"],
+parser.add_option("-t", "--treeName",action='append', default=[],
         help="Name of the tree corresponding to the right category", metavar="treeName")
 
 parser.add_option("-e", "--maxentries", dest="maxEntries", default=100000,

@@ -108,28 +108,39 @@ config_dict["dnn_config"] = {
 
 
 config_dict["ttH_DL_baseline_4nodes"] = {
-        "layers":                   [200,100,100],
+        "layers":                   [512,256,128],
         "loss_function":            "categorical_crossentropy",
-        "Dropout":                  0.3,
-        "L1_Norm":                  0.,
-        "L2_Norm":                  1e-5,
-        "batch_size":               128,
-        "optimizer":                optimizers.Adam(),
+        "Dropout":                  0.5,
+        "L2_Norm":                  1e-4,
+        "batch_size":               2048,
+        "optimizer":                optimizers.Adamax(1e-4),
         "activation_function":      "relu",
         "output_activation":        "softmax",
         "earlystopping_percentage":  0.02,
         "earlystopping_epochs":      100,
         }
 
+config_dict["ttH_DL_baseline_4nodes_1"] = {
+        "layers":                   [200,100,50],
+        "loss_function":            "categorical_crossentropy",
+        "Dropout":                  0.5,
+        "L2_Norm":                  1e-4,
+        "batch_size":               48,
+        "optimizer":                optimizers.Adamax(),
+        "activation_function":      "relu",
+        "output_activation":        "softmax",
+        "earlystopping_percentage":  0.02,
+        "earlystopping_epochs":      100,
+        }
 
 config_dict["ttH_DL_baseline_binary"] = {
-        "layers":                   [100,50,50],
+        "layers":                   [256,128,64],
         "loss_function":            "squared_hinge",
         "Dropout":                  0.2,
         "L2_Norm":                  1e-4,
-        "batch_size":               4096,
-        "optimizer":                optimizers.Adamax(),
-        "activation_function":      "elu",
+        "batch_size":               2048,
+        "optimizer":                optimizers.Adamax(1e-4),
+        "activation_function":      "relu",
         "output_activation":        "tanh",
         "earlystopping_percentage":  0.02,
         "earlystopping_epochs":      100,

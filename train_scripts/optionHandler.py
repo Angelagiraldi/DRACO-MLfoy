@@ -43,6 +43,8 @@ trainopts.add_option("-e", "--epochs", dest="train_epochs",default=1000,
         help="INT number of training epochs (default 1000)", metavar="TRAINEPOCHS")
 trainopts.add_option("-f", "--testfraction", dest="test_percentage",default=0.2,type=float,
         help="set fraction of events used for testing, rest is used for training", metavar="TESTFRACTION")
+trainopts.add_option("-y", "--year", dest="year",default=2017,type=float,
+        help="Year of the data used for training", metavar="YEAR")
 trainopts.add_option("--balanceSamples", dest="balanceSamples", action = "store_true", default=False,
         help="activate to balance train samples such that number of events per epoch is roughly equal for all classes. The usual balancing of train weights for all samples is actiaved by default and is not covered with this option.")
 trainopts.add_option("-u", "--unnormed", dest = "norm_variables", action = "store_false", default = True,
@@ -177,6 +179,9 @@ class optionHandler:
 
     def getTestPercentage(self):
         return self.__options.test_percentage
+
+    def getYear(self):
+        return self.__options.year
 
     def getDefaultName(self, sample):
         return sample+self.__options.naming

@@ -132,7 +132,7 @@ variables["ge4j_2t"] = [
 variables["ge4j_3t"] = [
         "MEM",
         "maxDeltaEta_tag_tag",
-        "blr",
+        #"blr",
         #"blr_transformed",
         # "maxDeltaEta_jet_jet",
         "avgDeltaR_tag_tag",
@@ -175,7 +175,7 @@ variables["ge4j_3t"] = [
 variables["ge4j_ge4t"] = [
         "MEM",
         "maxDeltaEta_tag_tag",
-        "blr",
+        #"blr",
         #"blr_transformed",
         "maxDeltaEta_jet_jet",
         "avgDeltaR_tag_tag",
@@ -216,7 +216,7 @@ variables["ge4j_ge4t"] = [
 ]
 
 variables["ge4j_ge3t"] = [
-    'MEM',
+    #'MEM',
     'blr',
     #'blr_transformed',
     'btagDiscriminatorAverage_untagged',

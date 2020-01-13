@@ -50,9 +50,6 @@ class Sample:
         # add lumi weight
         # adjust weights via 1/test_percentage such that yields in plots correspond to complete dataset
 
-        print(lumi)
-        print(self.normalization_weight)
-        print(self.test_percentage)
         df = df.assign(lumi_weight = lambda x: x.total_weight * lumi * self.normalization_weight / self.test_percentage)
 
         self.data = df
@@ -177,6 +174,8 @@ class DataFrame(object):
 
             # add index labelling to dataframe
             df["index_label"] = pd.Series( [self.class_translation[c.replace("ttHbb", "ttH").replace("ttZbb","ttZ")] for c in df["class_label"].values], index = df.index )
+            #df["index_label"] = pd.Series( [self.class_translation[c.replace("ttbb","binary_bkg")] for c in df["class_label"].values], index = df.index )
+
 
             # norm weights to mean(1)
             df["train_weight"] = df["train_weight"]*df.shape[0]/len(self.classes)

@@ -213,10 +213,6 @@ class plotDiscriminators:
             h_sig = np.concatenate((h_sig,hist2array(h)), axis=None)
         return h_bkg, h_sig
 
-
-
-
-
 class plotOutputNodes:
     def __init__(self, data, prediction_vector, event_classes, nbins, bin_range, signal_class, event_category, plotdir, logscale = False, sigScale = -1):
         self.data              = data
@@ -390,8 +386,8 @@ class plotClosureTest:
         self.pred_classes_train = np.argmax(self.train_prediction, axis = 1)
 
         self.event_classes      = event_classes
-        self.nbins              = nbins
         self.bin_range          = bin_range
+
         self.signal_class       = signal_class
         self.event_category     = event_category
         self.plotdir            = plotdir
@@ -418,119 +414,245 @@ class plotClosureTest:
         for i, node_cls in enumerate(self.event_classes):
             # get index of node
             nodeIndex = self.data.class_translation[node_cls]
+            print("nodeIndex")
+            print(nodeIndex)
             if self.signal_class:
                 signalIndex = self.signalIndex
                 signalClass = self.signal_class
             else:
                 signalIndex = [nodeIndex]
                 signalClass = node_cls
+            print("signalIndex")
+            print(signalIndex)
+            print("signalClass")
+            print(signalClass)
 
             # get output values of this node
             test_values = self.test_prediction[:,i]
             train_values = self.train_prediction[:,i]
 
-            sig_test_values = [test_values[k] for k in range(len(test_values)) \
-                if self.data.get_test_labels(as_categorical = False)[k] in signalIndex \
-                and self.pred_classes_test[k] == nodeIndex]
-            bkg_test_values = [test_values[k] for k in range(len(test_values)) \
-                if not self.data.get_test_labels(as_categorical = False)[k] in signalIndex \
+
+            test_values_ttH = [test_values[k] for k in range(len(test_values)) \
+                if self.data.get_test_labels(as_categorical = False)[k] == 0  \
                 and self.pred_classes_test[k] == nodeIndex]
 
-            sig_train_values = [train_values[k] for k in range(len(train_values)) \
-                if self.data.get_train_labels(as_categorical = False)[k] in signalIndex \
-                and self.pred_classes_train[k] == nodeIndex]
-            bkg_train_values = [train_values[k] for k in range(len(train_values)) \
-                if not self.data.get_train_labels(as_categorical = False)[k] in signalIndex \
-                and self.pred_classes_train[k] == nodeIndex]
-
-            sig_test_weights = [self.data.get_lumi_weights()[k] for k in range(len(test_values)) \
-                if self.data.get_test_labels(as_categorical = False)[k] in signalIndex \
-                and self.pred_classes_test[k] == nodeIndex]
-            bkg_test_weights = [self.data.get_lumi_weights()[k] for k in range(len(test_values)) \
-                if not self.data.get_test_labels(as_categorical = False)[k] in signalIndex \
+            test_values_ttbb = [test_values[k] for k in range(len(test_values)) \
+                if self.data.get_test_labels(as_categorical = False)[k] == 1  \
                 and self.pred_classes_test[k] == nodeIndex]
 
-            sig_train_weights = [self.data.get_train_lumi_weights()[k] for k in range(len(train_values)) \
-                if self.data.get_train_labels(as_categorical = False)[k] in signalIndex \
+            test_values_ttcc = [test_values[k] for k in range(len(test_values)) \
+                if self.data.get_test_labels(as_categorical = False)[k] == 2  \
+                and self.pred_classes_test[k] == nodeIndex]
+
+            test_values_ttlf = [test_values[k] for k in range(len(test_values)) \
+                if self.data.get_test_labels(as_categorical = False)[k] == 3  \
+                and self.pred_classes_test[k] == nodeIndex]
+
+
+
+            train_values_ttH = [train_values[k] for k in range(len(train_values)) \
+                if self.data.get_train_labels(as_categorical = False)[k] == 0  \
                 and self.pred_classes_train[k] == nodeIndex]
-            bkg_train_weights = [self.data.get_train_lumi_weights()[k] for k in range(len(train_values)) \
-                if self.data.get_train_labels(as_categorical = False)[k] in signalIndex \
+
+            train_values_ttbb = [train_values[k] for k in range(len(train_values)) \
+                if self.data.get_train_labels(as_categorical = False)[k] == 1  \
                 and self.pred_classes_train[k] == nodeIndex]
+
+            train_values_ttcc = [train_values[k] for k in range(len(train_values)) \
+                if self.data.get_train_labels(as_categorical = False)[k] == 2  \
+                and self.pred_classes_train[k] == nodeIndex]
+
+            train_values_ttlf = [train_values[k] for k in range(len(train_values)) \
+                if self.data.get_train_labels(as_categorical = False)[k] == 3  \
+                and self.pred_classes_train[k] == nodeIndex]
+
+
+
+            test_weights_ttH = [self.data.get_lumi_weights()[k] for k in range(len(test_values)) \
+                if self.data.get_test_labels(as_categorical = False)[k] == 0  \
+                and self.pred_classes_test[k] == nodeIndex]
+
+            test_weights_ttbb = [self.data.get_lumi_weights()[k] for k in range(len(test_values)) \
+                if self.data.get_test_labels(as_categorical = False)[k] == 1  \
+                and self.pred_classes_test[k] == nodeIndex]
+
+            test_weights_ttcc = [self.data.get_lumi_weights()[k] for k in range(len(test_values)) \
+                if self.data.get_test_labels(as_categorical = False)[k] == 2  \
+                and self.pred_classes_test[k] == nodeIndex]
+
+            test_weights_ttlf = [self.data.get_lumi_weights()[k] for k in range(len(test_values)) \
+                if self.data.get_test_labels(as_categorical = False)[k] == 3  \
+                and self.pred_classes_test[k] == nodeIndex]
+
+
+
+            train_weights_ttH = [self.data.get_train_lumi_weights()[k] for k in range(len(train_values)) \
+                if self.data.get_train_labels(as_categorical = False)[k] == 0  \
+                and self.pred_classes_train[k] == nodeIndex]
+
+            train_weights_ttbb = [self.data.get_train_lumi_weights()[k] for k in range(len(train_values)) \
+                if self.data.get_train_labels(as_categorical = False)[k] == 1  \
+                and self.pred_classes_train[k] == nodeIndex]
+
+            train_weights_ttcc = [self.data.get_train_lumi_weights()[k] for k in range(len(train_values)) \
+                if self.data.get_train_labels(as_categorical = False)[k] == 2  \
+                and self.pred_classes_train[k] == nodeIndex]
+
+            train_weights_ttlf = [self.data.get_train_lumi_weights()[k] for k in range(len(train_values)) \
+                if self.data.get_train_labels(as_categorical = False)[k] == 3  \
+                and self.pred_classes_train[k] == nodeIndex]
+
+            if node_cls == "ttH":
+                nbins = 20
+            elif node_cls == "ttbb":
+                nbins = 20
+            elif node_cls == "ttcc":
+                nbins = 10
+            elif node_cls == "ttlf":
+                nbins = 10
 
             # setup train histograms
-            sig_train = setup.setupHistogram(
-                values      = sig_train_values,
-                weights     = sig_train_weights,
-                nbins       = self.nbins,
+            ttH_train = setup.setupHistogram(
+                values      = train_values_ttH,
+                weights     = train_weights_ttH,
+                nbins       = nbins,
                 bin_range   = self.bin_range,
                 color       = ROOT.kBlue,
-                xtitle      = "signal train at "+str(node_cls)+" node",
+                xtitle      = "ttH train at "+str(node_cls)+" node",
                 ytitle      = setup.GetyTitle(privateWork = True),
                 filled      = True)
-            sig_train.Scale(1./sig_train.Integral())
-            sig_train.SetLineWidth(1)
-            sig_train.SetFillColorAlpha(ROOT.kBlue, 0.5)
+            ttH_train.Scale(1./ttH_train.Integral())
+            ttH_train.SetLineWidth(1)
+            ttH_train.SetFillColorAlpha(ROOT.kBlue, 0.25)
 
-            bkg_train = setup.setupHistogram(
-                values      = bkg_train_values,
-                weights     = bkg_train_weights,
-                nbins       = self.nbins,
+            ttbb_train = setup.setupHistogram(
+                values      = train_values_ttbb,
+                weights     = train_weights_ttbb,
+                nbins       = nbins,
                 bin_range   = self.bin_range,
                 color       = ROOT.kRed,
-                xtitle      = "bkg train at "+str(node_cls)+" node",
+                xtitle      = "ttbb train at "+str(node_cls)+" node",
                 ytitle      = setup.GetyTitle(privateWork = True),
                 filled      = True)
-            bkg_train.Scale(1./bkg_train.Integral())
-            bkg_train.SetLineWidth(1)
-            bkg_train.SetFillColorAlpha(ROOT.kRed, 0.5)
+            ttbb_train.Scale(1./ttbb_train.Integral())
+            ttbb_train.SetLineWidth(1)
+            ttbb_train.SetFillColorAlpha(ROOT.kRed, 0.25)
+
+            ttcc_train = setup.setupHistogram(
+                values      = train_values_ttcc,
+                weights     = train_weights_ttcc,
+                nbins       = nbins,
+                bin_range   = self.bin_range,
+                color       = ROOT.kGreen,
+                xtitle      = "ttcc train at "+str(node_cls)+" node",
+                ytitle      = setup.GetyTitle(privateWork = True),
+                filled      = True)
+            ttcc_train.Scale(1./ttcc_train.Integral())
+            ttcc_train.SetLineWidth(1)
+            ttcc_train.SetFillColorAlpha(ROOT.kGreen, 0.25)
+
+            ttlf_train = setup.setupHistogram(
+                values      = train_values_ttlf,
+                weights     = train_weights_ttlf,
+                nbins       = nbins,
+                bin_range   = self.bin_range,
+                color       = ROOT.kOrange,
+                xtitle      = "ttlf train at "+str(node_cls)+" node",
+                ytitle      = setup.GetyTitle(privateWork = True),
+                filled      = True)
+            ttlf_train.Scale(1./ttlf_train.Integral())
+            ttlf_train.SetLineWidth(1)
+            ttlf_train.SetFillColorAlpha(ROOT.kOrange, 0.25)
+
 
             # setup test histograms
-            sig_test = setup.setupHistogram(
-                values      = sig_test_values,
-                weights     = sig_test_weights,
-                nbins       = self.nbins,
+            ttH_test = setup.setupHistogram(
+                values      = test_values_ttH,
+                weights     = test_weights_ttH,
+                nbins       = nbins,
                 bin_range   = self.bin_range,
                 color       = ROOT.kBlue,
-                xtitle      = "signal test at "+str(node_cls)+" node",
+                xtitle      = "ttH test at "+str(node_cls)+" node",
                 ytitle      = setup.GetyTitle(privateWork = True),
                 filled      = False)
-            sig_test.Scale(1./sig_test.Integral())
-            sig_test.SetLineWidth(1)
-            sig_test.SetMarkerStyle(20)
-            sig_test.SetMarkerSize(2)
+            ttH_test.Scale(1./ttH_test.Integral())
+            ttH_test.SetLineWidth(1)
+            ttH_test.SetMarkerStyle(20)
+            ttH_test.SetMarkerSize(1)
 
-            bkg_test = setup.setupHistogram(
-                values      = bkg_test_values,
-                weights     = bkg_test_weights,
-                nbins       = self.nbins,
+            ttbb_test = setup.setupHistogram(
+                values      = test_values_ttbb,
+                weights     = test_weights_ttbb,
+                nbins       = nbins,
                 bin_range   = self.bin_range,
                 color       = ROOT.kRed,
-                xtitle      = "bkg test at "+str(node_cls)+" node",
+                xtitle      = "ttbb test at "+str(node_cls)+" node",
                 ytitle      = setup.GetyTitle(privateWork = True),
                 filled      = False)
-            bkg_test.Scale(1./bkg_test.Integral())
-            bkg_test.SetLineWidth(1)
-            bkg_test.SetMarkerStyle(20)
-            bkg_test.SetMarkerSize(2)
+            ttbb_test.Scale(1./ttbb_test.Integral())
+            ttbb_test.SetLineWidth(1)
+            ttbb_test.SetMarkerStyle(20)
+            ttbb_test.SetMarkerSize(1)
+
+            ttcc_test = setup.setupHistogram(
+                values      = test_values_ttcc,
+                weights     = test_weights_ttcc,
+                nbins       = nbins,
+                bin_range   = self.bin_range,
+                color       = ROOT.kGreen,
+                xtitle      = "ttcc test at "+str(node_cls)+" node",
+                ytitle      = setup.GetyTitle(privateWork = True),
+                filled      = False)
+            ttcc_test.Scale(1./ttcc_test.Integral())
+            ttcc_test.SetLineWidth(1)
+            ttcc_test.SetMarkerStyle(20)
+            ttcc_test.SetMarkerSize(1)
+
+            ttlf_test = setup.setupHistogram(
+                values      = test_values_ttlf,
+                weights     = test_weights_ttlf,
+                nbins       = nbins,
+                bin_range   = self.bin_range,
+                color       = ROOT.kOrange,
+                xtitle      = "ttlf test at "+str(node_cls)+" node",
+                ytitle      = setup.GetyTitle(privateWork = True),
+                filled      = False)
+            ttlf_test.Scale(1./ttlf_test.Integral())
+            ttlf_test.SetLineWidth(1)
+            ttlf_test.SetMarkerStyle(20)
+            ttlf_test.SetMarkerSize(1)
 
             plotOptions = {"logscale": self.logscale}
 
             # init canvas
             canvas = setup.drawClosureTestOnCanvas(
-                sig_train, bkg_train, sig_test, bkg_test, plotOptions,
+                ttH_train, ttbb_train, ttcc_train, ttlf_train, ttH_test, ttbb_test, ttcc_test, ttlf_test, plotOptions,
                 canvasName = "closure test at {} node".format(node_cls))
 
             # setup legend
             legend = setup.getLegend()
 
             legend.SetTextSize(0.02)
-            ksSig = sig_train.KolmogorovTest(sig_test)
-            ksBkg = bkg_train.KolmogorovTest(bkg_test)
+            ks_ttH = ttH_train.KolmogorovTest(ttH_test)
+            ks_ttbb = ttbb_train.KolmogorovTest(ttbb_test)
+            ks_ttcc = ttcc_train.KolmogorovTest(ttcc_test)
+            ks_ttlf = ttlf_train.KolmogorovTest(ttlf_test)
+
             # add entries
-            legend.AddEntry(sig_train, "train {}".format("+".join(signalClass)), "F")
-            legend.AddEntry(bkg_train, "train bkg", "F")
-            legend.AddEntry(sig_test,  "test {} (KS = {:.3f})".format("+".join(signalClass),ksSig), "L")
-            legend.AddEntry(bkg_test,  "test bkg (KS = {:.3f})".format(ksBkg), "L")
+            legend.AddEntry(ttH_train, "train ttH", "F")
+            legend.AddEntry(ttbb_train, "train ttbb", "F")
+            legend.AddEntry(ttcc_train, "train ttcc", "F")
+            legend.AddEntry(ttlf_train, "train ttlf", "F")
+
+            legend.AddEntry(ttH_test,  "test ttH (KS = {:.3f})".format(ks_ttH), "L")
+            legend.AddEntry(ttbb_test,  "test ttbb (KS = {:.3f})".format(ks_ttbb), "L")
+            legend.AddEntry(ttcc_test,  "test ttcc (KS = {:.3f})".format(ks_ttcc), "L")
+            legend.AddEntry(ttlf_test,  "test ttlf (KS = {:.3f})".format(ks_ttlf), "L")
+            print(node_cls)
+            print(ks_ttH)
+            print(ks_ttbb)
+            print(ks_ttcc)
+            print(ks_ttlf)
 
             # draw legend
             legend.Draw("same")
@@ -541,10 +663,9 @@ class plotClosureTest:
             # add category label
             setup.printCategoryLabel(canvas, self.event_category)
 
-
             # add private work label if activated
-            if self.privateWork:
-                setup.printPrivateWork(canvas, plotOptions["ratio"], nodePlot = True)
+            # if self.privateWork:
+            #     setup.printPrivateWork(canvas, plotOptions["ratio"], nodePlot = True)
 
             out_path = self.plotdir+"/closureTest_at_{}_node.pdf".format(node_cls)
             setup.saveCanvas(canvas, out_path)
@@ -555,7 +676,162 @@ class plotClosureTest:
         print(cmd)
         os.system(cmd)
 
+class plotBinaryClosureTest:
+    def __init__(self, data, test_prediction, train_prediction, nbins, bin_range, signal_class, event_category, plotdir, logscale = False):
+        self.data               = data
+        self.test_prediction    = test_prediction
+        self.train_prediction   = train_prediction
 
+        self.bin_range          = bin_range
+        self.nbins              = 20
+        self.signal_class       = signal_class
+        self.event_category     = event_category
+        self.plotdir            = plotdir
+        self.logscale           = logscale
+
+        # generate sub directory
+        self.plotdir += "/ClosurePlots/"
+        if not os.path.exists(self.plotdir):
+            os.makedirs(self.plotdir)
+
+        # default settings
+        self.privateWork = False
+
+    def plot(self, ratio = False, privateWork = False):
+        self.privateWork = privateWork
+
+        # loop over output nodes
+        for i, node_cls in enumerate(self.event_classes):
+
+            test_values_signal = [ self.test_predictions[k] for k in range(len(self.test_predictions)) \
+                if self.data.get_test_labels()[k] == 1 ]
+
+            test_values_background = [ self.test_predictions[k] for k in range(len(self.test_predictions)) \
+                if not self.data.get_test_labels()[k] == 1 ]
+
+            train_values_signal = [ self.train_predictions[k] for k in range(len(self.train_predictions)) \
+                if self.data.get_train_labels()[k] == 1 ]
+
+            train_values_background = [ self.train_predictions[k] for k in range(len(self.train_predictions)) \
+                if not self.data.get_train_labels()[k] == 1 ]
+
+
+
+            test_weights_signal = [ self.data.get_lumi_weights()[k] for k in range(len(self.test_predictions)) \
+                if self.data.get_test_labels()[k] == 1]
+
+            test_weights_background = [ self.data.get_lumi_weights()[k] for k in range(len(self.test_predictions)) \
+                if not self.data.get_test_labels()[k] == 1]
+
+            train_weights_signal = [ self.data.get_lumi_weights()[k] for k in range(len(self.train_predictions)) \
+                if self.data.get_train_labels()[k] == 1]
+
+            train_weights_background = [ self.data.get_lumi_weights()[k] for k in range(len(self.train_predictions)) \
+                if not self.data.get_train_labels()[k] == 1]
+
+
+            # setup train histograms
+            ttH_train = setup.setupHistogram(
+                values      = train_values_signal,
+                weights     = train_weights_signal,
+                nbins       = self.nbins,
+                bin_range   = self.bin_range,
+                color       = ROOT.kBlue,
+                xtitle      = "signal train",
+                ytitle      = setup.GetyTitle(privateWork = True),
+                filled      = True)
+            ttH_train.Scale(1./ttH_train.Integral())
+            ttH_train.SetLineWidth(1)
+            ttH_train.SetFillColorAlpha(ROOT.kBlue, 0.25)
+
+            ttbb_train = setup.setupHistogram(
+                values      = train_values_background,
+                weights     = train_weights_background,
+                nbins       = nbins,
+                bin_range   = self.bin_range,
+                color       = ROOT.kRed,
+                xtitle      = "background train",
+                ytitle      = setup.GetyTitle(privateWork = True),
+                filled      = True)
+            ttbb_train.Scale(1./ttbb_train.Integral())
+            ttbb_train.SetLineWidth(1)
+            ttbb_train.SetFillColorAlpha(ROOT.kRed, 0.25)
+
+            # setup test histograms
+            ttH_test = setup.setupHistogram(
+                values      = test_values_signal,
+                weights     = test_weights_signal,
+                nbins       = nbins,
+                bin_range   = self.bin_range,
+                color       = ROOT.kBlue,
+                xtitle      = "signal test",
+                ytitle      = setup.GetyTitle(privateWork = True),
+                filled      = False)
+            ttH_test.Scale(1./ttH_test.Integral())
+            ttH_test.SetLineWidth(1)
+            ttH_test.SetMarkerStyle(20)
+            ttH_test.SetMarkerSize(1)
+
+            ttbb_test = setup.setupHistogram(
+                values      = test_values_background,
+                weights     = test_weights_background,
+                nbins       = nbins,
+                bin_range   = self.bin_range,
+                color       = ROOT.kRed,
+                xtitle      = "background test",
+                ytitle      = setup.GetyTitle(privateWork = True),
+                filled      = False)
+            ttbb_test.Scale(1./ttbb_test.Integral())
+            ttbb_test.SetLineWidth(1)
+            ttbb_test.SetMarkerStyle(20)
+            ttbb_test.SetMarkerSize(1)
+            plotOptions = {"logscale": self.logscale}
+
+            # init canvas
+            canvas = setup.drawBinaryClosureTestOnCanvas(
+                ttH_train, ttbb_train, ttcc_train, ttlf_train, ttH_test, ttbb_test, ttcc_test, ttlf_test, plotOptions,
+                canvasName = "closure test at {} node".format(node_cls))
+
+            # setup legend
+            legend = setup.getLegend()
+
+            legend.SetTextSize(0.02)
+            ks_ttH = ttH_train.KolmogorovTest(ttH_test)
+            ks_ttbb = ttbb_train.KolmogorovTest(ttbb_test)
+
+            # add entries
+            legend.AddEntry(ttH_train, "train ttH", "F")
+            legend.AddEntry(ttbb_train, "train ttbb", "F")
+
+
+            legend.AddEntry(ttH_test,  "test ttH (KS = {:.3f})".format(ks_ttH), "L")
+            legend.AddEntry(ttbb_test,  "test ttbb (KS = {:.3f})".format(ks_ttbb), "L")
+
+            print(node_cls)
+            print(ks_ttH)
+            print(ks_ttbb)
+
+            # draw legend
+            legend.Draw("same")
+
+            # prit private work label if activated
+            if self.privateWork:
+                setup.printPrivateWork(canvas)
+            # add category label
+            setup.printCategoryLabel(canvas, self.event_category)
+
+            # add private work label if activated
+            # if self.privateWork:
+            #     setup.printPrivateWork(canvas, plotOptions["ratio"], nodePlot = True)
+
+            out_path = self.plotdir+"/closureTest_at_{}_node.pdf".format(node_cls)
+            setup.saveCanvas(canvas, out_path)
+
+        # add the histograms together
+        workdir = os.path.dirname(os.path.dirname(self.plotdir[:-1]))
+        cmd = "pdfunite "+str(self.plotdir)+"/closureTest_*.pdf "+str(workdir)+"/closureTest.pdf"
+        print(cmd)
+        os.system(cmd)
 
 
 
@@ -603,10 +879,6 @@ class plotConfusionMatrix:
 
         canvas = setup.drawConfusionMatrixOnCanvas(cm, "confusion matrix", self.event_category, self.ROCScore, privateWork = privateWork)
         setup.saveCanvas(canvas, self.plotdir+"/confusionMatrix.pdf")
-
-
-
-
 
 class plotEventYields:
     def __init__(self, data, prediction_vector, event_classes, event_category, signal_class, plotdir, logscale, sigScale = -1):
@@ -754,7 +1026,7 @@ class plotBinaryOutput:
         self.data               = data
         self.test_predictions   = test_predictions
         self.train_predictions  = train_predictions
-        self.full_predictions   = full_predictions
+
         self.nbins              = nbins
         self.bin_range          = bin_range
         self.event_category     = event_category
@@ -781,28 +1053,28 @@ class plotBinaryOutput:
         sig_weights =[ self.data.get_lumi_weights()[k] for k in range(len(self.test_predictions)) \
             if self.data.get_test_labels()[k] == 1]
 
-        sig_values_full = [ self.full_predictions[k] for k in range(len(self.full_predictions)) \
-            if self.data.get_labels()[k] == 1 ]
-        sig_weights_full =[ self.data.get_full_lumi_weights()[k] for k in range(len(self.full_predictions)) \
-            if self.data.get_labels()[k] == 1]
-        sig_weights_weights =[ self.data.get_full_weights()[k] for k in range(len(self.full_predictions)) \
-            if self.data.get_labels()[k] == 1]
-
-        sig_hist_full = ROOT.TH1F("sgn_full", "Signal distribution; binary DNN output", 20,-1,1)
-        for i in range(len(sig_values_full)):
-            sig_hist_full.Fill(sig_values_full[i],sig_weights_full[i])
-
-        sig_hist_full_weights = ROOT.TH1F("sgn_full_weights", "Signal distribution; binary DNN output", 20,-1,1)
-        for i in range(len(sig_values_full)):
-            sig_hist_full.Fill(sig_values_full[i],sig_weights_weights[i])
-
-        sig_hist_full_noweights = ROOT.TH1F("sgn_full_noweights", "Signal distribution; binary DNN output", 20,-1,1)
-        for i in range(len(sig_values_full)):
-            sig_hist_full_noweights.Fill(sig_values_full[i])
-
-        sig_hist_noweights = ROOT.TH1F("sgn_test_noweights", "Signal distribution; binary DNN output", 20,-1,1)
-        for i in range(len(sig_values)):
-            sig_hist_noweights.Fill(sig_values[i])
+        # sig_values_full = [ self.full_predictions[k] for k in range(len(self.full_predictions)) \
+        #     if self.data.get_labels()[k] == 1 ]
+        # sig_weights_full =[ self.data.get_full_lumi_weights()[k] for k in range(len(self.full_predictions)) \
+        #     if self.data.get_labels()[k] == 1]
+        # sig_weights_weights =[ self.data.get_full_weights()[k] for k in range(len(self.full_predictions)) \
+        #     if self.data.get_labels()[k] == 1]
+        #
+        # sig_hist_full = ROOT.TH1F("sgn_full", "Signal distribution; binary DNN output", 20,-1,1)
+        # for i in range(len(sig_values_full)):
+        #     sig_hist_full.Fill(sig_values_full[i],sig_weights_full[i])
+        #
+        # sig_hist_full_weights = ROOT.TH1F("sgn_full_weights", "Signal distribution; binary DNN output", 20,-1,1)
+        # for i in range(len(sig_values_full)):
+        #     sig_hist_full.Fill(sig_values_full[i],sig_weights_weights[i])
+        #
+        # sig_hist_full_noweights = ROOT.TH1F("sgn_full_noweights", "Signal distribution; binary DNN output", 20,-1,1)
+        # for i in range(len(sig_values_full)):
+        #     sig_hist_full_noweights.Fill(sig_values_full[i])
+        #
+        # sig_hist_noweights = ROOT.TH1F("sgn_test_noweights", "Signal distribution; binary DNN output", 20,-1,1)
+        # for i in range(len(sig_values)):
+        #     sig_hist_noweights.Fill(sig_values[i])
 
         sig_hist = setup.setupHistogram(
             values      = sig_values,
@@ -999,9 +1271,9 @@ class plotBinaryOutput:
         legend.AddEntry(sig_hist, "signal x {:4.0f}".format(scaleFactor), "L")
 
         # add background entries
-        #legend.AddEntry(bkg_hist, "background", "F")
-        for i, h in enumerate(bkgHists):
-            legend.AddEntry(h, bkgLabels[i], "F")
+        legend.AddEntry(bkg_hist, "background", "F")
+        # for i, h in enumerate(bkgHists):
+        #     legend.AddEntry(h, bkgLabels[i], "F")
         # draw legend
         legend.Draw("same")
 

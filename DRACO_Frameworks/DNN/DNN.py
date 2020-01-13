@@ -105,6 +105,7 @@ class DNN():
             norm_variables     = True,
             train_epochs       = 500,
             test_percentage    = 0.20,
+            lumi               = 41.5,
             eval_metrics       = None,
             shuffle_seed       = None,
             balanceSamples     = False,
@@ -149,10 +150,10 @@ class DNN():
         # percentage of events saved for testing
         self.test_percentage = test_percentage
 
+        self.lumi = lumi
 
         # number of train epochs
         self.train_epochs = train_epochs
-
 
         # additional metrics for evaluation of the training process
         self.eval_metrics = eval_metrics
@@ -198,6 +199,7 @@ class DNN():
             input_samples    = self.input_samples,
             event_category   = self.category_cutString,
             train_variables  = self.train_variables,
+            lumi             = self.lumi,
             test_percentage  = self.test_percentage,
             norm_variables   = self.norm_variables,
             shuffleSeed      = shuffle_seed,

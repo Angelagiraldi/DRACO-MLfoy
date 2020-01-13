@@ -55,7 +55,7 @@ class Sample:
                 self.selections = "(Evt_Odd == 1)"
 
 class Dataset:
-    def __init__(self, outputdir, tree=['MVATree'], naming='', addMEM=False, maxEntries=50000, varName_Run='Evt_Run', varName_LumiBlock='Evt_Lumi', varName_Event='Evt_ID', ttbarReco=False, ncores=1):
+    def __init__(self, outputdir, tree=['MVATree'], naming='', addMEM=False, maxEntries=50000, varName_Run='Evt_Run', varName_LumiBlock='Evt_Lumi', varName_Event='Evt_ID', ttbarReco=False, ncores=2):
         # settings for paths
         self.outputdir = outputdir
         self.naming = naming
@@ -277,7 +277,7 @@ class Dataset:
         while not len(ntuple_files)%self.ncores == 0:
             ntuple_files.append("")
         ntuple_files = np.array(ntuple_files).reshape(self.ncores, -1)
-    
+
         pool = Pool(self.ncores)
         chunks = [{"chunk": c, "sample": sample, "chunkNumber": i+1, "self": self} for i,c in enumerate(ntuple_files)]
         pool.map(processChunk, chunks)
@@ -356,7 +356,7 @@ class Dataset:
                     sample.categories.categories["bkg"]   = "(is_ttbar==0)"
 
                 if concat_df.empty: concat_df = df
-                else: concat_df = concat_df.append(df)            
+                else: concat_df = concat_df.append(df)
                 n_entries += df.shape[0]
 
                 # if number of entries exceeds max threshold, add labels and mem and save dataframe
@@ -474,7 +474,7 @@ class Dataset:
 
             with pd.HDFStore(outFile, "a") as store:
                 store.append("data", cat_df, index = False)
-            
+
     def mergeFiles(self, categories):
         print("="*50)
         print("merging multicore threading files ...")
@@ -482,11 +482,11 @@ class Dataset:
             print("category: {}".format(key))
             threadFiles = [ self.outputdir+"/"+key+"_"+self.naming+"_"+str(chunkNumber+1)+".h5" for chunkNumber in range(self.ncores) ]
             outFile = self.outputdir+"/"+key+"_"+self.naming+".h5"
-        
+
             with pd.HDFStore(outFile, "a") as store:
                 for f in threadFiles:
                     print("merging file {}".format(f))
-                    if not os.path.exists(f): 
+                    if not os.path.exists(f):
                         print("\t-> does not exist?!")
                         continue
                     store.append("data", pd.read_hdf(f), index = False)
@@ -526,4 +526,3 @@ class Dataset:
             if filename.endswith(".old") and filename.split(".")[0] in rerename:
                 print("re-renaming file {}".format(filename))
                 os.rename(self.outputdir+"/"+filename,self.outputdir+"/"+filename[:-4])
-

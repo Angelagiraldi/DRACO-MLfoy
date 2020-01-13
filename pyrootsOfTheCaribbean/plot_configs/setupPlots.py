@@ -15,8 +15,7 @@ def GetPlotColor( cls ):
         "ttb":          ROOT.kRed-2,
         "tthf":         ROOT.kRed-3,
         "ttbar":        ROOT.kOrange,
-        "ttmb":         ROOT.kRed-1,
-        "ttb_bb":       ROOT.kRed-1,
+        "ttmergedb":    ROOT.kRed-1,
         "ST":           ROOT.kRed-8,
         "tH":           ROOT.kWhite,
         "sig":   ROOT.kCyan,
@@ -80,7 +79,7 @@ def setupYieldHistogram(yields, classes, xtitle, ytitle, color = ROOT.kBlack, fi
 
     for iBin in range(len(classes)):
         histogram.SetBinContent(iBin+1, yields[iBin])
-        histogram.SetBinError(iBin+1, np.sqrt(yields[iBin]))
+        #histogram.SetBinError(iBin+1, np.sqrt(yields[iBin]))
 
 
     histogram.SetStats(False)
@@ -146,10 +145,6 @@ def setupConfusionMatrix(matrix, ncls, xtitle, ytitle, binlabel, errors = None):
     cm.GetXaxis().SetLabelSize(0.05)
     cm.GetYaxis().SetLabelSize(0.05)
     cm.SetMarkerSize(2.)
-    if cm.GetNbinsX()>6:
-        cm.SetMarkerSize(1.5)
-    if cm.GetNbinsX()>8:
-        cm.SetMarkerSize(1.)
 
     return cm
 
@@ -199,45 +194,97 @@ def drawConfusionMatrixOnCanvas(matrix, canvasName, catLabel, ROC = None, ROCerr
 
     return canvas
 
-def drawClosureTestOnCanvas(sig_train, bkg_train, sig_test, bkg_test, plotOptions, canvasName):
+def drawClosureTestOnCanvas(ttH_train, ttbb_train, ttcc_train, ttlf_train, ttH_test, ttbb_test, ttcc_test, ttlf_test, plotOptions, canvasName):
+
     canvas = getCanvas(canvasName)
 
     # move over/underflow bins into plotrange
-    moveOverUnderFlow(sig_train)
-    moveOverUnderFlow(bkg_train)
-    moveOverUnderFlow(sig_test)
-    moveOverUnderFlow(bkg_test)
+    moveOverUnderFlow(ttH_test)
+    moveOverUnderFlow(ttbb_test)
+    moveOverUnderFlow(ttcc_test)
+    moveOverUnderFlow(ttlf_test)
+    moveOverUnderFlow(ttH_train)
+    moveOverUnderFlow(ttbb_train)
+    moveOverUnderFlow(ttcc_train)
+    moveOverUnderFlow(ttlf_train)
 
     # figure out plotrange
     canvas.cd(1)
     yMax = 1e-9
     yMinMax = 1000.
-    for h in [sig_train, bkg_train, sig_test, bkg_test]:
+    for h in [ttH_train, ttbb_train, ttcc_train, ttlf_train, ttH_test, ttbb_test, ttcc_test, ttlf_test]:
         yMax = max(h.GetBinContent(h.GetMaximumBin()), yMax)
         if h.GetBinContent(h.GetMaximumBin()) > 0:
             yMinMax = min(h.GetBinContent(h.GetMaximumBin()), yMinMax)
 
     # draw first hist
     if plotOptions["logscale"]:
-        bkg_train.GetYaxis().SetRangeUser(yMinMax/10000, yMax*10)
+        ttbb_train.GetYaxis().SetRangeUser(yMinMax/10000, yMax*10)
         canvas.SetLogy()
     else:
-        bkg_train.GetYaxis().SetRangeUser(0, yMax*1.5)
-    bkg_train.GetXaxis().SetTitle(canvasName)
+        ttbb_train.GetYaxis().SetRangeUser(0, yMax*1.5)
+    ttbb_train.GetXaxis().SetTitle(canvasName)
 
     option = "histo"
-    bkg_train.DrawCopy(option+"E0")
+    ttbb_train.DrawCopy(option+"E0")
 
     # draw the other histograms
-    sig_train.DrawCopy(option+"E0 same")
-    bkg_test.DrawCopy("E0 same")
-    sig_test.DrawCopy("E0 same")
+    ttH_train.DrawCopy(option+"E0 same")
+    ttcc_train.DrawCopy(option+"E0 same")
+    ttlf_train.DrawCopy(option+"E0 same")
+    ttbb_test.DrawCopy("E0 same")
+    ttH_test.DrawCopy("E0 same")
+    ttcc_test.DrawCopy("E0 same")
+    ttlf_test.DrawCopy("E0 same")
 
     # redraw axis
     canvas.cd(1)
-    bkg_train.DrawCopy("axissame")
+    ttbb_train.DrawCopy("axissame")
 
     return canvas
+
+
+def drawBinaryClosureTestOnCanvas(ttH_train, ttbb_train,  ttH_test, ttbb_test, plotOptions, canvasName):
+
+    canvas = getCanvas(canvasName)
+
+    # move over/underflow bins into plotrange
+    moveOverUnderFlow(ttH_test)
+    moveOverUnderFlow(ttbb_test)
+    moveOverUnderFlow(ttH_train)
+    moveOverUnderFlow(ttbb_train)
+
+    # figure out plotrange
+    canvas.cd(1)
+    yMax = 1e-9
+    yMinMax = 1000.
+    for h in [ttH_train, ttbb_train, ttH_test, ttbb_test]:
+        yMax = max(h.GetBinContent(h.GetMaximumBin()), yMax)
+        if h.GetBinContent(h.GetMaximumBin()) > 0:
+            yMinMax = min(h.GetBinContent(h.GetMaximumBin()), yMinMax)
+
+    # draw first hist
+    if plotOptions["logscale"]:
+        ttbb_train.GetYaxis().SetRangeUser(yMinMax/10000, yMax*10)
+        canvas.SetLogy()
+    else:
+        ttbb_train.GetYaxis().SetRangeUser(0, yMax*1.5)
+    ttbb_train.GetXaxis().SetTitle(canvasName)
+
+    option = "histo"
+    ttbb_train.DrawCopy(option+"E0")
+
+    # draw the other histograms
+    ttH_train.DrawCopy(option+"E0 same")
+    ttbb_test.DrawCopy("E0 same")
+    ttH_test.DrawCopy("E0 same")
+
+    # redraw axis
+    canvas.cd(1)
+    ttbb_train.DrawCopy("axissame")
+
+    return canvas
+
 
 def drawHistsOnCanvas(sigHists, bkgHists, plotOptions, canvasName,displayname=None,logoption=False):
     if not displayname:
@@ -256,9 +303,9 @@ def drawHistsOnCanvas(sigHists, bkgHists, plotOptions, canvasName,displayname=No
         moveOverUnderFlow(h)
 
     # stack Histograms
-    bkgHists = [bkgHists[len(bkgHists)-1-i] for i in range(len(bkgHists))]
-    for i in range(len(bkgHists)-1, 0, -1):
-        bkgHists[i-1].Add(bkgHists[i])
+    #bkgHists = [bkgHists[len(bkgHists)-1-i] for i in range(len(bkgHists))]
+    #for i in range(len(bkgHists)-1, 0, -1):
+    #    bkgHists[i-1].Add(bkgHists[i])
 
     # figure out plotrange
     canvas.cd(1)
@@ -282,7 +329,7 @@ def drawHistsOnCanvas(sigHists, bkgHists, plotOptions, canvasName,displayname=No
     firstHist.GetXaxis().SetTitle(displayname)
 
     option = "histo"
-    firstHist.DrawCopy(option+"E0")
+    firstHist.DrawCopy(option)
 
     # draw the other histograms
     for h in bkgHists[1:]:
@@ -296,7 +343,7 @@ def drawHistsOnCanvas(sigHists, bkgHists, plotOptions, canvasName,displayname=No
     # draw signal histograms
     for sH in sigHists:
         # draw signal histogram
-        sH.DrawCopy(option+" E0 same")
+        sH.DrawCopy(option+" same")
 
 
     if plotOptions["ratio"]:
@@ -317,7 +364,7 @@ def drawHistsOnCanvas(sigHists, bkgHists, plotOptions, canvasName,displayname=No
         line.GetYaxis().SetNdivisions(505)
         for i in range(line.GetNbinsX()+1):
             line.SetBinContent(i, 1)
-            line.SetBinError(i, 1)
+            #line.SetBinError(i, 1)
         line.SetLineWidth(1)
         line.SetLineColor(ROOT.kBlack)
         line.DrawCopy("histo")
@@ -463,11 +510,11 @@ def moveOverUnderFlow(h):
     h.SetBinContent(h.GetNbinsX(), h.GetBinContent(h.GetNbinsX()+1)+h.GetBinContent(h.GetNbinsX()))
 
     # set underflow error
-    h.SetBinError(1, ROOT.TMath.Sqrt(
-        ROOT.TMath.Power(h.GetBinError(0),2) + ROOT.TMath.Power(h.GetBinError(1),2) ))
+    #h.SetBinError(1, ROOT.TMath.Sqrt(
+    #    ROOT.TMath.Power(h.GetBinError(0),2) + ROOT.TMath.Power(h.GetBinError(1),2) ))
     # set overflow error
-    h.SetBinError(h.GetNbinsX(), ROOT.TMath.Sqrt(
-        ROOT.TMath.Power(h.GetBinError(h.GetNbinsX()),2) + ROOT.TMath.Power(h.GetBinError(h.GetNbinsX()+1),2) ))
+    #h.SetBinError(h.GetNbinsX(), ROOT.TMath.Sqrt(
+    #    ROOT.TMath.Power(h.GetBinError(h.GetNbinsX()),2) + ROOT.TMath.Power(h.GetBinError(h.GetNbinsX()+1),2) ))
 
 
 def calculateKSscore(stack, sig):

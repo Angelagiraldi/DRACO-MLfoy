@@ -175,7 +175,7 @@ variables["ge4j_3t"] = [
 variables["ge4j_ge4t"] = [
         "MEM",
         # "blr_transformed",
-        "blr",
+        #"blr",
         # "minDeltaR_tag_tag",
         "maxDeltaEta_tag_tag",
         "avgDeltaR_tag_tag",
@@ -216,7 +216,7 @@ variables["ge4j_ge4t"] = [
 ]
 
 variables["ge4j_ge3t"] = [
-        "MEM",
+        #"MEM",
         "blr",
         # "blr_transformed",
         "pT_tag_tag_min_deltaR",

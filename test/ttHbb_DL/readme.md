@@ -14,7 +14,7 @@
 
 -tag associated to a Data set (corresponds to year: 2016, 2017, 2018)
 ```bash
-YEAR=2018
+YEAR=2017
 ```
 
 - change/add event categories (default event categories are `ttH_categories`, `ttbar_bb_categories`,`ttbar_b_categories`,`ttbar_2b_categories`,`ttcc_categories`,`ttlf_categories`; `ttbb_categories` is for ttbb+tt2b+ttb and `binary_bkg_categories` for ttbb+tt2b+ttb+ttcc+ttlf)
@@ -63,19 +63,26 @@ python preprocessing.py -o InputFeatures/${YEAR}/${category}  -t liteTreeTTH_ste
 ------------------------------------------------------------------------------------------
 # Run first-order derivatives for the Taylor Expansion of the ANNs outputs
 
-To compute the first-order derivatives for the DNN Taylor expansion add the funciton "dnn.get_gradients(options.isBinary())" in `train_template.py`.
-Whenever an architecture in `net_configs.py` is added or its name is changed, remember to  change the corresponding TensorFlow architecture in `net_configs_tensorflow.py`.
-The TensorFlow architecture has to have the same name as the keras one with the additional `_tensorflow` at the end.
+To compute the first-order derivatives for the DNN Taylor expansion add the function
+
+```bash
+dnn.get_gradients(options.isBinary())
+```
+in `train_ttHbb_DL.py`.
+
+**Whenever an architecture in `net_configs.py` is added or its name is changed, remember to  change the corresponding TensorFlow architecture in `net_configs_tensorflow.py`.**
+
+The TensorFlow architecture has to have the same name as the Keras one with the additional `_tensorflow` at the end.
 
 ## Usage
 To execute with default options use
 ```bash
-python train_template.py
+python train_ttHbb_DL.py
 ```
 or use the following options
 1. Category used for training
     - `-c STR` name of the category `(ge/le)[nJets]j_(ge/le)[nTags]t`
-    (default is `ge4j_ge3t`)
+    (default is `4j_ge3t`)
 
 2. Sample Options
     - `-o DIR` to change the name of the output directory (absolute path or path relative to `workdir`)
@@ -121,7 +128,7 @@ or use the following options
 
 Example:
 ```bash
-python train_template.py -i /path/to/input/files/ -o testRun --netconfig=test_config --plot --printroc -c ge6j_ge3t --epochs=1000 --signalclass=ttHbb,ttbb
+python train_ttHbb_DL.py -i /path/to/input/files/ -o testRun --netconfig=test_config --plot --printroc -c ge6j_ge3t --epochs=1000 --signalclass=ttHbb,ttbb
 ```
 
 
@@ -131,17 +138,16 @@ python eval_template.py
 ```
 using the option `-i DIR` to specify the path to the already trained network.
 
-The plotting options of `train_template.py` are also avaiable for this script.
+The plotting options of `train_ttHbb_DL.py` are also avaiable for this script.
 
 Example:
 ```bash
 python eval_template.py -i testRun_ge6j_ge3t -o eval_testRun --plot --printroc
 ```
 
-
 Compute the average of the weights for different layers and different seeds:
 
-Run train_template.py calling the function get_weights() (not only get_input_weights()) in order to have the "absolute_weight_sum_layer *.csv" for the input layer and each dropout layer.
+Run train_template.py calling the function get_weights() (not only get_input_weights()) in order to have the "absolute_weight_sum_layer*.csv" for the input layer and each dropout layer.
 If you want to compute the average over multiple trainings with different seed, run train_template.py several times and copy all the folders inside one folder (/path/to/trained/networks/)
 
 ```bash
@@ -152,7 +158,7 @@ using the option `-i DIR` to specify the path to the directory inside which ther
 using the option `-l INT` to specify the number of layers to consider in the computation.
 
 
-To compute the first-order derivatives for the DNN Taylor expansion add the funciton "dnn.get_gradients(options.isBinary())" in `train_template.py`. Whenever you add/change an architecture in `net_configs.py`, remember to  change the corresponding TensorFlow architecture in `net_configs_tensorflow.py`. The TensorFlow architecture has to have the same name as the keras one with the additional "_tensorflow" at the end.
+To compute the first-order derivatives for the DNN Taylor expansion add the funciton "dnn.get_gradients(options.isBinary())" in `train_template.py`. Whenever you add/change an architecture in `net_configs.py`, remember to  change the corresponding TensorFlow architecture in `net_configs_tensorflow.py`. The TensorFlow architecture has to have the same name as the keras one with the additional `_tensorflow` at the end.
 
 
 ## Interface to pyroot plotscripts

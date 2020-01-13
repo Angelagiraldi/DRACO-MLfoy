@@ -34,28 +34,58 @@ if __name__ == '__main__':
     # thus, the event yield has to be multiplied by two. This is done with normalization_weight = 2.
 
     df.xsec_ttbarH125toBBbar_2L = 0.5071 * 0.58240 * 0.10608
-    df.sum_weights_ttbarH125toBBbar_2L = 39288.133881240494 + 39135.2659744472 + 38058.83373687076 + 37464.635827452155 + 32688.26072449913 + 32556.61567502508 + 33011.21865091314 + \
-                                         37148.99907820718 + 37028.035861583325 + 38002.175838184354 + 39289.00812472586 + 38216.78275522937 + 38665.486247293 + 38115.688442639206 +38197.198583188656
-    input_samples.addSample(options.getDefaultName("ttH"), label = "ttH", normalization_weight = options.getNomWeight(), total_weight_expr=' x.weight ')
-    #input_samples.addSample(options.getDefaultName("ttH"), label = "ttH", normalization_weight = options.getNomWeight(), total_weight_expr=' xsec_ttbarH125toBBbar_2L * x.weight / sum_weights_ttbarH125toBBbar_2L')
-
-    # input_samples.addSample(options.getDefaultName("binary_bkg"), label = "binary_bkg" , normalization_weight = options.getNomWeight(), total_weight_expr='x.weight')
-
     df.xsec_ttbar_DL = 831.76 * 0.10608
     df.xsec_ttbb_PowhegOpenLoops_4FS_DL = df.xsec_ttbar_DL * 0.020574086/0.51103793
-    df.sum_weights_Powheg_ext1 = 3073708205.723201
-    #input_samples.addSample(options.getDefaultName("ttbb"), label = "ttbb" , normalization_weight = options.getNomWeight(), total_weight_expr='xsec_ttbb_PowhegOpenLoops_4FS_DL * x.weight / sum_weights_Powheg_ext1')
-    #input_samples.addSample(options.getDefaultName("tt2b"), label = "tt2b" , normalization_weight = options.getNomWeight(), total_weight_expr='xsec_ttbb_PowhegOpenLoops_4FS_DL * x.weight / sum_weights_Powheg_ext1')
-    #input_samples.addSample(options.getDefaultName("ttb"), label = "ttb"  , normalization_weight = options.getNomWeight(), total_weight_expr='xsec_ttbb_PowhegOpenLoops_4FS_DL * x.weight / sum_weights_Powheg_ext1')
 
-    # input_samples.addSample(options.getDefaultName("ttbar"), label = "ttbar"  , normalization_weight = options.getNomWeight(), total_weight_expr='xsec_ttbb_PowhegOpenLoops_4FS_DL * x.weight / sum_weights_Powheg_ext1')
-    input_samples.addSample(options.getDefaultName("ttbar"), label = "ttbar"  , normalization_weight = options.getNomWeight(), total_weight_expr='x.weight')
+    sum_weights_Powheg_0_2016 = 8408747.746740535
+    sum_weights_TuneCP5_2016 =  490159100.40832114 + 490130836.80188614 + 490168889.96922886 + 488537460.1397215 + 490185354.9467821
+    sum_weights_ttbarH125toBBbar_2L_2016 = 39765.99884442469 + 39771.183613112145 + 34058.02468345683 + 34059.37673503202 + 34077.40377754729 + 34102.410952828635 + 34175.41132666297 \
+                                            + 37681.14978037304 +39733.110723826794 + 39690.48396339876 + 39711.10705024548 + 39818.30865110878 + 39730.609552379145 + 39776.97717344325 + 34027.00030933365
 
-    df.sum_weights_PSweights = 487573200.27611256 + 487620525.0399089 + 487953818.4051517 + 480978050.0409142 + 480852734.6651834 + 498016562.91250074
-    # input_samples.addSample(options.getDefaultName("ttcc"), label = "ttcc" , normalization_weight = options.getNomWeight(), total_weight_expr=' xsec_ttbar_DL * x.weight / sum_weights_PSweights')
-    # input_samples.addSample(options.getDefaultName("ttlf"), label = "ttlf" , normalization_weight = options.getNomWeight(), total_weight_expr=' xsec_ttbar_DL  * x.weight / sum_weights_PSweights')
-    input_samples.addSample(options.getDefaultName("ttcc"), label = "ttcc" , normalization_weight = options.getNomWeight(), total_weight_expr=' x.weight ')
-    input_samples.addSample(options.getDefaultName("ttlf"), label = "ttlf" , normalization_weight = options.getNomWeight(), total_weight_expr=' x.weight ')
+    sum_weights_Powheg_ext1_2017 = 8247621.656529294
+    sum_weights_PSweights_2017 =  648729877.2955494 + 499566945.11193895 + 499858376.58322227 + 499660945.01436853 + 499023147.24216413 + 498016562.91250074
+    sum_weights_ttbarH125toBBbar_2L_2017 = 39502.816208213015 + 36790.15734001045 + 38319.73621853188 + 38032.58055960547 + 32257.256983167223 + 33190.72819521076 + 32631.445217642915 \
+                                            + 37431.35466692021 + 38840.303006490045 + 38080.21581990127 + 37843.861321620985 + 37915.100467954726 + 38062.14019095547 + 40396.62012507156 + 37572.02308020294
+
+    sum_weights_Powheg_0_2018 = 8181838.0385628445
+    sum_weights_PSweights_2018 =  468521499.31969476 + 468527555.2109918 + 468588683.43705857 + 468578106.77498674 + 461346316.60127276
+    sum_weights_ttbarH125toBBbar_2L_2018 = 43050.188694801975 + 35200.73227474732 + 30144.02653294645 + 38703.815337536515 + 34571.193831927594 + 33851.30924416335 + 34568.64807854568 \
+                                            + 38842.94220910299 + 34094.639342342256 + 35929.31804776111 + 34191.452638792 + 38090.98543298225 + 37630.73484200643 + 40196.88382084637 + 35168.496076980984
+
+    if options.getYear() == 2016:
+        lumi = 35.9
+        df.sum_weights_Powheg = sum_weights_Powheg_0_2016
+        df.sum_weights_PSweights = sum_weights_TuneCP5_2016
+        df.sum_weights_ttbarH125toBBbar_2L = sum_weights_ttbarH125toBBbar_2L_2016
+    elif options.getYear() == 2017:
+        lumi = 41.5
+        df.sum_weights_Powheg = sum_weights_Powheg_ext1_2017
+        df.sum_weights_PSweights = sum_weights_PSweights_2017
+        df.sum_weights_ttbarH125toBBbar_2L = sum_weights_ttbarH125toBBbar_2L_2017
+    elif options.getYear() == 2018:
+        lumi = 59.7
+        df.sum_weights_Powheg = sum_weights_Powheg_0_2018
+        df.sum_weights_PSweights = sum_weights_PSweights_2018
+        df.sum_weights_ttbarH125toBBbar_2L = sum_weights_ttbarH125toBBbar_2L_2018
+    else:
+        lumi = 0
+
+    #input_samples.addSample(options.getDefaultName("ttH"), label = "ttH", normalization_weight = options.getNomWeight(), total_weight_expr=' x.weight ')
+    input_samples.addSample(options.getDefaultName("ttH"), label = "ttH", normalization_weight = options.getNomWeight(), total_weight_expr=' xsec_ttbarH125toBBbar_2L * x.weight / sum_weights_ttbarH125toBBbar_2L')
+
+    #input_samples.addSample(options.getDefaultName("binary_bkg"), label = "binary_bkg" , normalization_weight = options.getNomWeight(), total_weight_expr='x.weight')
+
+    #input_samples.addSample(options.getDefaultName("ttbb"), label = "ttbb" , normalization_weight = options.getNomWeight(), total_weight_expr='xsec_ttbb_PowhegOpenLoops_4FS_DL * x.weight / sum_weights_Powheg')
+    #input_samples.addSample(options.getDefaultName("tt2b"), label = "tt2b" , normalization_weight = options.getNomWeight(), total_weight_expr='xsec_ttbb_PowhegOpenLoops_4FS_DL * x.weight / sum_weights_Powheg')
+    #input_samples.addSample(options.getDefaultName("ttb"), label = "ttb"  , normalization_weight = options.getNomWeight(), total_weight_expr='xsec_ttbb_PowhegOpenLoops_4FS_DL * x.weight / sum_weights_Powheg')
+
+    input_samples.addSample(options.getDefaultName("ttbb"), label = "ttbb"  , normalization_weight = options.getNomWeight(), total_weight_expr='xsec_ttbb_PowhegOpenLoops_4FS_DL * x.weight / sum_weights_Powheg')
+    #input_samples.addSample(options.getDefaultName("ttbb"), label = "ttbb"  , normalization_weight = options.getNomWeight(), total_weight_expr='x.weight')
+
+    input_samples.addSample(options.getDefaultName("ttcc"), label = "ttcc" , normalization_weight = options.getNomWeight(), total_weight_expr=' xsec_ttbar_DL * x.weight / sum_weights_PSweights')
+    input_samples.addSample(options.getDefaultName("ttlf"), label = "ttlf" , normalization_weight = options.getNomWeight(), total_weight_expr=' xsec_ttbar_DL  * x.weight / sum_weights_PSweights')
+    #input_samples.addSample(options.getDefaultName("ttcc"), label = "ttcc" , normalization_weight = options.getNomWeight(), total_weight_expr=' x.weight ')
+    #input_samples.addSample(options.getDefaultName("ttlf"), label = "ttlf" , normalization_weight = options.getNomWeight(), total_weight_expr=' x.weight ')
 
     if options.isBinary():
        input_samples.addBinaryLabel(options.getSignal(), options.getBinaryBkgTarget())
@@ -97,6 +127,8 @@ if __name__ == '__main__':
         category_label     = category_label_dict[options.getCategory()],
 
         train_variables = options.getTrainVariables(),
+
+        lumi = lumi,
 
         # number of epochs
         train_epochs    = options.getTrainEpochs(),
@@ -147,6 +179,11 @@ if __name__ == '__main__':
                     nbins       = 20,
                     name        = options.getName())
 
+                # plot closure test
+                dnn.plot_binaryclosureTest(
+                    log                 = options.doLogPlots(),
+                    signal_class        = options.getSignal(),
+                    privateWork         = options.isPrivateWork())
             else:
                 # plot the confusion matrix
                 dnn.plot_confusionMatrix(
@@ -177,15 +214,16 @@ if __name__ == '__main__':
                     sigScale            = options.getSignalScale())
 
                 # plot closure test
-                #dnn.plot_closureTest(
-                    # log                 = options.doLogPlots(),
-                    # signal_class        = options.getSignal(),
-                    # privateWork         = options.isPrivateWork())
+                dnn.plot_closureTest(
+                    log                 = options.doLogPlots(),
+                    signal_class        = options.getSignal(),
+                    privateWork         = options.isPrivateWork(),
+                    bin_range           = [0,1])
             # plot the evaluation metrics
             print("plot_metrics")
-            #dnn.plot_metrics(privateWork = options.isPrivateWork())
+            dnn.plot_metrics(privateWork = options.isPrivateWork())
 
-            dnn.get_gradients(options.isBinary())
+            #dnn.get_gradients(options.isBinary())
             #dnn.predict_event_query()
 
     else:

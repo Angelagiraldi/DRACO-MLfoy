@@ -129,7 +129,7 @@ variables["ge4j_2t"] = [
 ]
 
 variables["ge4j_3t"] = [
-        "blr",
+        #"blr",
         "bjet3_btag",
         "maxDeltaEta_tag_tag",
         "MEM",
@@ -181,7 +181,7 @@ variables["ge4j_ge4t"] = [
         # "centrality_tags",
         # "D_tag",
         # "aplanarity_tag",
-        "blr",
+        #"blr",
         "mass_tag_tag_max_mass",
         # "H2_tag",
         # "R2_tag",
@@ -216,7 +216,7 @@ variables["ge4j_ge4t"] = [
 
 
 variables["ge4j_ge3t"] = [
-        "MEM",
+        #"MEM",
         "blr",
         "avgDeltaR_tag_tag",
         "maxDeltaEta_tag_tag",
